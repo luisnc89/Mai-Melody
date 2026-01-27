@@ -32,10 +32,13 @@ const Header: React.FC<HeaderProps> = ({
           className="text-2xl font-serif italic font-bold text-gray-800 cursor-pointer tracking-tight flex items-center gap-2 group"
         >
           <div className="relative w-10 h-10 flex items-center justify-center">
-            <span className="text-3xl text-violet-500 group-hover:rotate-12 transition-transform duration-500 relative z-10">🦋</span>
-            <div className="absolute inset-0 bg-gradient-to-tr from-violet-200 to-pink-200 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="absolute -bottom-1 w-full h-1 bg-gradient-to-r from-violet-400 via-pink-400 to-violet-400 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform origin-center"></div>
+            <span className="text-3xl text-violet-500 group-hover:rotate-12 transition-transform duration-500 relative z-10">
+              🦋
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-tr from-violet-200 to-pink-200 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute -bottom-1 w-full h-1 bg-gradient-to-r from-violet-400 via-pink-400 to-violet-400 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform origin-center" />
           </div>
+
           <div className="flex flex-col">
             <span className="bg-gradient-to-r from-violet-700 via-pink-600 to-violet-700 bg-[length:200%_auto] hover:bg-[100%_center] transition-all duration-700 bg-clip-text text-transparent text-3xl leading-none">
               MaiMelody
@@ -51,23 +54,29 @@ const Header: React.FC<HeaderProps> = ({
 
           <Link
             to="/"
-            className={`hover:text-violet-600 transition-colors relative pb-1 ${isActive('/') ? 'text-violet-600' : ''}`}
+            className={`hover:text-violet-600 transition-colors relative pb-1 ${
+              isActive('/') ? 'text-violet-600' : ''
+            }`}
           >
             {t.nav_home}
             {isActive('/') && <div className="absolute bottom-0 left-0 w-full h-0.5 multi-glow" />}
           </Link>
 
           <Link
-            to="/crea"
-            className={`hover:text-violet-600 transition-colors relative pb-1 ${isActive('/crea') ? 'text-violet-600' : ''}`}
+            to="/crear"
+            className={`hover:text-violet-600 transition-colors relative pb-1 ${
+              isActive('/crear') ? 'text-violet-600' : ''
+            }`}
           >
             {t.nav_create}
-            {isActive('/crea') && <div className="absolute bottom-0 left-0 w-full h-0.5 multi-glow" />}
+            {isActive('/crear') && <div className="absolute bottom-0 left-0 w-full h-0.5 multi-glow" />}
           </Link>
 
           <Link
             to="/como-funciona"
-            className={`hover:text-violet-600 transition-colors relative pb-1 ${isActive('/como-funciona') ? 'text-violet-600' : ''}`}
+            className={`hover:text-violet-600 transition-colors relative pb-1 ${
+              isActive('/como-funciona') ? 'text-violet-600' : ''
+            }`}
           >
             {t.nav_how}
             {isActive('/como-funciona') && <div className="absolute bottom-0 left-0 w-full h-0.5 multi-glow" />}
@@ -75,16 +84,21 @@ const Header: React.FC<HeaderProps> = ({
 
           <Link
             to="/blog"
-            className={`hover:text-violet-600 transition-colors relative pb-1 ${isActive('/blog') ? 'text-violet-600' : ''}`}
+            className={`hover:text-violet-600 transition-colors relative pb-1 ${
+              isActive('/blog') ? 'text-violet-600' : ''
+            }`}
           >
             {t.nav_blog}
             {isActive('/blog') && <div className="absolute bottom-0 left-0 w-full h-0.5 multi-glow" />}
           </Link>
 
+          {/* ADMIN SOLO SI ESTÁ AUTENTICADO (NO VISIBLE PÚBLICAMENTE) */}
           {isAuthenticated && (
             <Link
               to="/admin"
-              className={`hover:text-violet-600 transition-colors relative pb-1 ${isActive('/admin') ? 'text-violet-600' : ''}`}
+              className={`hover:text-violet-600 transition-colors relative pb-1 ${
+                isActive('/admin') ? 'text-violet-600' : ''
+              }`}
             >
               {t.nav_admin}
               {isActive('/admin') && <div className="absolute bottom-0 left-0 w-full h-0.5 multi-glow" />}
@@ -113,4 +127,3 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 export default Header;
-

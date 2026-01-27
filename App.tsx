@@ -61,6 +61,12 @@ const App: React.FC = () => {
     }
   }, [currentSection, isAuthenticated]);
 
+useEffect(() => {
+  if (window.location.pathname === '/admin') {
+    setSection('login');
+  }
+}, []);
+
   const handleSectionChange = (s: Section) => {
     setSection(s);
     setIsPackSelected(false);

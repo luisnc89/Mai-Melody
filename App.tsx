@@ -1,4 +1,5 @@
 
+import { Routes, Route, Navigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -123,70 +124,57 @@ useEffect(() => {
         isAuthenticated={isAuthenticated}
       />
 
-      <main className="relative z-10">
-        {currentSection === 'inicio' && (
-          <>
-            <Hero 
-              language={language} 
-              onCtaClick={handleStartCreating} 
-              onSecondaryCtaClick={() => handleSectionChange('video-ia')}
-            />
-            <UseCases language={language} />
-            <div className="relative py-16 text-center italic text-gray-500 font-serif text-2xl overflow-hidden">
-              <div className="absolute inset-0 bg-violet-100/30"></div>
-              <div className="relative z-10">{t.quote}</div>
-              <div className="absolute top-2 left-1/4 text-violet-400/20 text-4xl butterfly-float">🦋</div>
-              <div className="absolute bottom-2 right-1/4 text-pink-400/20 text-3xl butterfly-float" style={{ animationDelay: '2s' }}>🦋</div>
-            </div>
-            
-            <ArtisticVideoCreator 
-              language={language} 
-              onContinueToOrder={() => handlePackSelected('artistico')}
-            />
+<main className="relative z-10">
+  <Routes>
 
-            <Examples language={language} onCtaClick={handleStartCreating} />
-            <HowItWorks language={language} onCtaClick={handleStartCreating} />
-            <Testimonials language={language} />
-            <SEOBlock language={language} />
-          </>
-        )}
+    {/* HOME */}
+    <Route path="/" element={
+      <>
+        <Hero 
+          language={language} 
+          onCtaClick={handleStartCreating} 
+          onSecondaryCtaClick={() => handleSectionChange('video-ia')}
+        />
+        <UseCases language={language} />
 
-        {currentSection === 'crea' && (
-          <div className="pt-20">
-            {!isPackSelected ? (
-              <Pricing language={language} onPackSelected={handlePackSelected} />
-            ) : (
-              <CreationForm language={language} selectedPack={selectedPack} />
-            )}
-          </div>
-        )}
+        <div className="relative py-16 text-center italic text-gray-500 font-serif text-2xl overflow-hidden">
+          <div className="absolute inset-0 bg-violet-100/30"></div>
+          <div className="relative z-10">{t.quote}</div>
+          <div className="absolute top-2 left-1/4 text-violet-400/20 text-4xl butterfly-float">🦋</div>
+          <div className="absolute bottom-2 right-1/4 text-pink-400/20 text-3xl butterfly-float" style={{ animationDelay: '2s' }}>🦋</div>
+        </div>
 
-        {currentSection === 'funciona' && (
-          <div className="pt-20">
-            <HowItWorks language={language} onCtaClick={handleStartCreating} />
-          </div>
-        )}
+        <ArtisticVideoCreator 
+          language={language} 
+          onContinueToOrder={() => handlePackSelected('artistico')}
+        />
 
-        {currentSection === 'blog' && (
-          <Blog language={language} onPostClick={handlePostClick} />
-        )}
+        <Examples language={language} onCtaClick={handleStartCreating} />
+        <HowItWorks language={language} onCtaClick={handleStartCreating} />
+        <Testimonials language={language} />
+        <SEOBlock language={language} />
+      </>
+    } />
 
-        {currentSection === 'blog-post' && activePost && (
-          <BlogPostDetail 
-            language={language} 
-            post={activePost} 
-            onBack={() => handleSectionChange('blog')} 
-          />
-        )}
+    {/* BLOG */}
+    <Route path="/blog" element={
+      <Blog language={language} onPostClick={handlePostClick} />
+    } />
 
-        {currentSection === 'login' && (
-          <Login language={language} onLogin={handleLogin} />
-        )}
+    {/* ADMIN (OCULTO) */}
+    <Route path="/admin" element={
+      isAuthenticated ? (
+        <Admin language={language} onLogout={handleLogout} />
+      ) : (
+        <Login language={language} onLogin={handleLogin} />
+      )
+    } />
 
-        {currentSection === 'admin' && isAuthenticated && (
-          <Admin language={language} onLogout={handleLogout} />
-        )}
-      </main>
+    {/* CUALQUIER OTRA RUTA */}
+    <Route path="*" element={<Navigate to="/" />} />
+
+  </Routes>
+</main>
 
       <footer className="bg-gray-900 text-white py-12 px-4 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">

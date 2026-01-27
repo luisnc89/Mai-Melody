@@ -21,7 +21,7 @@ import Login from './components/Login';
 import { Language, PackType, BlogPost } from './types';
 import { translations } from './translations';
 
-/* DECORACIONES (NO LAS TOCO) */
+/* DECORACIONES */
 const ButterflyDecoration = () => (
   <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
     <div className="absolute top-[10%] left-[5%] butterfly-float text-violet-500/30 text-4xl">🦋</div>
@@ -67,50 +67,105 @@ const App: React.FC = () => {
         <Routes>
 
           {/* HOME */}
-          <Route path="/" element={
-            <>
-              <Hero language={language} onCtaClick={() => {}} onSecondaryCtaClick={() => {}} />
-              <UseCases language={language} />
-              <ArtisticVideoCreator
-                language={language}
-                onContinueToOrder={() => setIsPackSelected(true)}
-              />
-              <Examples language={language} onCtaClick={() => {}} />
-              <HowItWorks language={language} onCtaClick={() => {}} />
-              <Testimonials language={language} />
-              <SEOBlock language={language} />
-            </>
-          } />
-
-          {/* CREAR */}
-          <Route path="/crear" element={
-            !isPackSelected
-              ? <Pricing language={language} onPackSelected={setSelectedPack} />
-              : <CreationForm language={language} selectedPack={selectedPack} />
-          } />
-
-          {/* BLOG */}
-          <Route path="/blog" element={
-            <Blog language={language} onPostClick={setActivePost} />
-          } />
-
-          <Route path="/blog/:slug" element={
-            activePost
-              ? <BlogPostDetail language={language} post={activePost} onBack={() => {}} />
-              : <Navigate to="/blog" />
-          } />
-
-          {/* ADMIN OCULTO */}
           <Route
-            path="/admin"
+            path="/"
             element={
-              isAuthenticated
-                ? <Admin language={language} onLogout={handleLogout} />
-                : <Login language={language} onLogin={handleLogin} />
+              <>
+                <Hero
+                  language={language}
+                  onCtaClick={() => {}}
+                  onSecondaryCtaClick={() => {}}
+                />
+                <UseCases language={language} />
+                <ArtisticVideoCreator
+                  language={language}
+                  onContinueToOrder={() => setIsPackSelected(true)}
+                />
+                <Examples language={language} onCtaClick={() => {}} />
+                <HowItWorks language={language} onCtaClick={() => {}} />
+                <Testimonials language={language} />
+                <SEOBlock language={language} />
+              </>
             }
           />
 
-          {/* CUALQUIER OTRA */}
+          {/* CREAR */}
+          <Route
+            path="/crear"
+            element={
+              !isPackSelected ? (
+                <Pricing
+                  language={language}
+                  onPackSelected={(pack) => {
+                    setSelectedPack(pack);
+                    setIsPackSelected(true);
+                  }}
+                />
+              ) : (
+                <CreationForm
+                  language={language}
+                  selectedPack={selectedPack}
+                />
+              )
+            }
+          />
+
+          {/* CÓMO FUNCIONA (RUTA REAL) */}
+          <Route
+            path="/como-funciona"
+            element={
+              <HowItWorks
+                language={language}
+                onCtaClick={() => {}}
+              />
+            }
+          />
+
+          {/* BLOG */}
+          <Route
+            path="/blog"
+            element={
+              <Blog
+                language={language}
+                onPostClick={setActivePost}
+              />
+            }
+          />
+
+          <Route
+            path="/blog/:slug"
+            element={
+              activePost ? (
+                <BlogPostDetail
+                  language={language}
+                  post={activePost}
+                  onBack={() => {}}
+                />
+              ) : (
+                <Navigate to="/blog" />
+              )
+            }
+          />
+
+          {/* ADMIN */}
+          <Route
+            path="/admin"
+            element={
+              isAuthenticated ? (
+                <Admin
+                  language={language}
+                  onLogout={handleLogout}
+                />
+              ) : (
+                <Login
+                  language={language}
+                  onLogin={handleLogin}
+                />
+              )
+            }
+          />
+
+          {/* FALLBACK */}
           <Route path="*" element={<Navigate to="/" />} />
 
         </Routes>
@@ -128,3 +183,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

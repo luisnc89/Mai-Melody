@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Language } from '../types';
@@ -63,13 +62,13 @@ const Header: React.FC<HeaderProps> = ({
           </Link>
 
           <Link
-            to="/crear"
+            to="/packs"
             className={`hover:text-violet-600 transition-colors relative pb-1 ${
-              isActive('/crear') ? 'text-violet-600' : ''
+              isActive('/packs') ? 'text-violet-600' : ''
             }`}
           >
             {t.nav_create}
-            {isActive('/crear') && <div className="absolute bottom-0 left-0 w-full h-0.5 multi-glow" />}
+            {isActive('/packs') && <div className="absolute bottom-0 left-0 w-full h-0.5 multi-glow" />}
           </Link>
 
           <Link
@@ -92,7 +91,6 @@ const Header: React.FC<HeaderProps> = ({
             {isActive('/blog') && <div className="absolute bottom-0 left-0 w-full h-0.5 multi-glow" />}
           </Link>
 
-          {/* ADMIN SOLO SI ESTÁ AUTENTICADO (NO VISIBLE PÚBLICAMENTE) */}
           {isAuthenticated && (
             <Link
               to="/admin"

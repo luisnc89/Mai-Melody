@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -18,7 +17,7 @@ import BlogPostDetail from './components/BlogPost';
 import Admin from './components/Admin';
 import Login from './components/Login';
 
-import { Language, PackType, BlogPost } from './types';
+import { Language, BlogPost } from './types';
 import { translations } from './translations';
 
 /* DECORACIONES */
@@ -36,10 +35,10 @@ const NoteDecoration = () => (
 );
 
 const App: React.FC = () => {
+  const location = useLocation();
+
   const [language, setLanguage] = useState<Language>('es');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isPackSelected, setIsPackSelected] = useState(false);
-  const [selectedPack, setSelectedPack] = useState<PackType>('basico');
   const [activePost, setActivePost] = useState<BlogPost | null>(null);
 
   const t = translations[language];
@@ -71,54 +70,33 @@ const App: React.FC = () => {
             path="/"
             element={
               <>
-                <Hero
-                  language={language}
-                  onCtaClick={() => {}}
-                  onSecondaryCtaClick={() => {}}
-                />
+                <Hero language={language} />
                 <UseCases language={language} />
-                <ArtisticVideoCreator
-                  language={language}
-                  onContinueToOrder={() => setIsPackSelected(true)}
-                />
-                <Examples language={language} onCtaClick={() => {}} />
-                <HowItWorks language={language} onCtaClick={() => {}} />
+                <ArtisticVideoCreator language={language} />
+                <Examples language={language} />
+                <HowItWorks language={language} />
                 <Testimonials language={language} />
                 <SEOBlock language={language} />
               </>
             }
           />
 
-          {/* CREAR */}
+          {/* PACKS */}
           <Route
-            path="/crear"
-            element={
-              !isPackSelected ? (
-                <Pricing
-                  language={language}
-                  onPackSelected={(pack) => {
-                    setSelectedPack(pack);
-                    setIsPackSelected(true);
-                  }}
-                />
-              ) : (
-                <CreationForm
-                  language={language}
-                  selectedPack={selectedPack}
-                />
-              )
-            }
+            path="/packs"
+            element={<Pricing language={language} />}
           />
 
-          {/* CÓMO FUNCIONA (RUTA REAL) */}
+          {/* CREAR CON PACK */}
+          <Route
+            path="/crear/:pack"
+            element={<CreationForm language={language} />}
+          />
+
+          {/* CÓMO FUNCIONA */}
           <Route
             path="/como-funciona"
-            element={
-              <HowItWorks
-                language={language}
-                onCtaClick={() => {}}
-              />
-            }
+            element={<HowItWorks language={language} />}
           />
 
           {/* BLOG */}
@@ -183,4 +161,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-

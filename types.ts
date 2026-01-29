@@ -1,23 +1,92 @@
+/* =========================
+   IDIOMAS
+========================= */
 
 export type Language = 'es' | 'en' | 'fr' | 'it' | 'ca';
 
-export type Section = 
-  | 'inicio' 
-  | 'crea' 
-  | 'funciona' 
-  | 'video-ia' 
-  | 'blog' 
-  | 'blog-post' 
-  | 'admin' 
+
+/* =========================
+   SECCIONES / RUTAS
+========================= */
+
+export type Section =
+  | 'inicio'
+  | 'crea'
+  | 'funciona'
+  | 'video-ia'
+  | 'blog'
+  | 'blog-post'
+  | 'admin'
   | 'login';
 
+
+/* =========================
+   PACKS
+========================= */
+
 export type PackType = 'basico' | 'emocion' | 'artistico';
+
+
+/* =========================
+   ESTILOS DE IMAGEN (PACK ARTÍSTICO)
+========================= */
+
+export type ImageStyle =
+  | 'Foto Original'
+  | 'Acuarela'
+  | 'Anime 2D'
+  | 'Cartoon Mágico'
+  | 'Lápiz'
+  | 'Cómic'
+  | 'Blanco y Negro'
+  | 'Animación 3D';
+
+
+/* =========================
+   ESTADO DEL PEDIDO
+========================= */
+
+export type OrderStatus = 'pendiente' | 'en_proceso' | 'completado';
+
+
+/* =========================
+   ESTILO MUSICAL
+========================= */
+
+export type MusicalStyle =
+  | 'Pop'
+  | 'Rock'
+  | 'Balada'
+  | 'Reggaeton'
+  | 'Rap'
+  | 'Electrónica'
+  | 'Infantil';
+
+
+/* =========================
+   VOZ
+========================= */
+
+export type VoiceType =
+  | 'Masculina'
+  | 'Femenina'
+  | 'Infantil'
+  | 'Indiferente';
+
+
+/* =========================
+   IMÁGENES SUBIDAS
+========================= */
 
 export interface PhotoWithStyle {
   file: File;
   preview: string;
-  style?: string;
 }
+
+
+/* =========================
+   BLOG
+========================= */
 
 export interface BlogPost {
   id: string;
@@ -29,16 +98,36 @@ export interface BlogPost {
   image: string;
 }
 
-export interface SongRequest {
+
+/* =========================
+   PEDIDO (FRONT + ADMIN)
+========================= */
+
+export interface SongOrder {
   id: string;
-  songTitle: string;
-  senderName: string;
-  recipientName: string;
-  memories: string;
+
+  pack: PackType;
+  language: Language;
+
+  title: string;
+  story: string;
   occasion: string;
-  language: string;
-  musicalStyle: string;
-  voice: 'Masculina' | 'Femenina' | 'Indiferente';
-  deliveryEmail: string;
-  status: 'pendiente' | 'letra_enviada' | 'completada';
+
+  from: string;
+  to: string;
+
+  email: string;
+
+  /* 🎵 NUEVO */
+  musicalStyle: MusicalStyle;
+
+  /* 🎤 NUEVO */
+  voice: VoiceType;
+
+  photos: string[];
+  imageStyle?: ImageStyle;
+
+  status: OrderStatus;
+
+  createdAt: string;
 }

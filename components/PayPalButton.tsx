@@ -23,13 +23,16 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({ amount, onSuccess }) => {
     renderedRef.current = true;
 
     window.paypal.Buttons({
+      fundingSource: window.paypal.FUNDING.PAYPAL,
+
       style: {
         layout: 'vertical',
         color: 'gold',
         shape: 'pill',
         label: 'paypal',
       },
-      createOrder: (_: any, actions: any) => {
+
+      createOrder: (_data: any, actions: any) => {
         return actions.order.create({
           purchase_units: [
             {
@@ -41,13 +44,18 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({ amount, onSuccess }) => {
           ],
         });
       },
-      onApprove: async (_: any, actions: any) => {
-        await actions.order.capture();
-        onSuccess();
+
+      onApprove: async (_data: any, actions: any) => {
+        try {
+          await actions.order.capture();
+          onSuccess();
+        } catch (err) {
+          console.error('Capture error:', err);
+        }
       },
+
       onError: (err: any) => {
         console.error('PayPal error:', err);
-        alert('Error en el pago con PayPal');
       },
     }).render(containerRef.current);
   }, [amount, onSuccess]);

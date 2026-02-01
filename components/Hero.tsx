@@ -56,7 +56,7 @@ const Hero: React.FC<HeroProps> = ({ language }) => {
             >
               <div className="absolute inset-0 multi-glow opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <span className="relative z-10">
-                🎵 Crea tu canción
+                 {t.hero_cta}
               </span>
             </button>
 
@@ -64,7 +64,7 @@ const Hero: React.FC<HeroProps> = ({ language }) => {
               onClick={goToEmotionPack}
               className="bg-transparent text-gray-900 border-2 border-violet-200 px-10 py-5 rounded-full text-lg font-semibold hover:border-violet-400 hover:bg-violet-50 transition-all transform hover:scale-105"
             >
-              🎬 Crear tu Vídeo
+              🎬 {t.hero_cta_secondary}
             </button>
           </div>
 

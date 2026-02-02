@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Language } from '../types';
 import { translations } from '../translations';
+import { ROUTE_SLUGS, PACK_SLUGS } from '../routes/slugs';
 
-const ArtisticVideoCreator: React.FC<{ language: Language }> = ({ language }) => {
-  const t = translations[language];
+const ArtisticVideoCreator: React.FC = () => {
   const navigate = useNavigate();
+  const { lang } = useParams<{ lang: Language }>();
+
+  const language: Language =
+    lang === 'es' || lang === 'en' || lang === 'ca' || lang === 'fr' || lang === 'it'
+      ? lang
+      : 'es';
+
+  const t = translations[language];
+
   const [activeStyle, setActiveStyle] = useState<string>('original');
 
   const styleImages: Record<string, string> = {
@@ -30,7 +39,9 @@ const ArtisticVideoCreator: React.FC<{ language: Language }> = ({ language }) =>
   ];
 
   const goToArtisticPack = () => {
-    navigate(`/crear/artistico?style=${activeStyle}`);
+    navigate(
+      `/${language}/${ROUTE_SLUGS.create[language]}/${PACK_SLUGS.artistico[language]}?style=${activeStyle}`
+    );
   };
 
   return (
@@ -91,12 +102,17 @@ const ArtisticVideoCreator: React.FC<{ language: Language }> = ({ language }) =>
                 ))}
               </div>
 
+              {/* CTA */}
               <button
                 onClick={goToArtisticPack}
-                className="w-full bg-gray-900 text-white py-5 rounded-full font-bold text-lg hover:bg-gold transition"
+                className="relative group w-full overflow-hidden bg-gray-900 text-white py-5 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-xl"
               >
-                {t.artistic_cta}
+                <div className="absolute inset-0 multi-glow opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <span className="relative z-10">
+                  {t.artistic_cta}
+                </span>
               </button>
+
             </div>
           </div>
 

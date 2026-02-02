@@ -1,13 +1,20 @@
-
 import React from 'react';
+import { useParams } from 'react-router-dom';
 import { Language } from '../types';
 import { translations } from '../translations';
 
-interface SEOBlockProps {
-  language: Language;
-}
+/* =========================
+   🌍 Idiomas soportados
+========================= */
+const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
-const SEOBlock: React.FC<SEOBlockProps> = ({ language }) => {
+const SEOBlock: React.FC = () => {
+  const { lang } = useParams<{ lang: Language }>();
+
+  const language: Language = SUPPORTED_LANGUAGES.includes(lang as Language)
+    ? (lang as Language)
+    : 'es';
+
   const t = translations[language];
 
   return (

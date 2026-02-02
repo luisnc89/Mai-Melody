@@ -1,27 +1,52 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Language } from '../types';
 import { translations } from '../translations';
+import { ROUTE_SLUGS } from '../routes/slugs';
 
-interface HowItWorksProps {
-  language: Language;
-}
+/* =========================
+   🌍 Idiomas soportados
+========================= */
+const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
-const HowItWorks: React.FC<HowItWorksProps> = ({ language }) => {
-  const t = translations[language];
+/* =========================
+   🗺️ Slugs de packs por idioma
+========================= */
+const PACK_SLUGS: Record<Language, { basico: string }> = {
+  es: { basico: 'basico' },
+  en: { basico: 'basic' },
+  ca: { basico: 'basic' },
+  fr: { basico: 'basique' },
+  it: { basico: 'base' },
+};
+
+const HowItWorks: React.FC = () => {
+  const { lang } = useParams<{ lang: Language }>();
   const navigate = useNavigate();
+
+  const language: Language = SUPPORTED_LANGUAGES.includes(lang as Language)
+    ? (lang as Language)
+    : 'es';
+
+  const t = translations[language];
 
   const steps = [
     { title: t.how_step1_title, desc: t.how_step1_desc, icon: '📝' },
     { title: t.how_step2_title, desc: t.how_step2_desc, icon: '💳' },
     { title: t.how_step3_title, desc: t.how_step3_desc, icon: '♪' },
     { title: t.how_step4_title, desc: t.how_step4_desc, icon: '🎬' },
-    { title: t.how_step5_title, desc: t.how_step5_desc, icon: '🎁' }
+    { title: t.how_step5_title, desc: t.how_step5_desc, icon: '🎁' },
   ];
+
+  const goToBasicPack = () => {
+    navigate(
+      `/${language}/${ROUTE_SLUGS.create[language]}/${PACK_SLUGS[language].basico}`
+    );
+  };
 
   return (
     <section
-      id="funciona"
+      id="how-it-works"
       className="py-24 px-4 bg-warm-white relative overflow-hidden scroll-mt-24"
     >
       {/* Decoraciones */}
@@ -50,20 +75,17 @@ const HowItWorks: React.FC<HowItWorksProps> = ({ language }) => {
           {steps.map((step, idx) => (
             <div key={idx} className="flex flex-col items-center group">
               <div className="relative mb-6">
-                <div className="w-28 h-28 bg-white rounded-[2rem] shadow-[0_20px_40px_rgba(139,92,246,0.06)] flex items-center justify-center text-4xl transform transition-all duration-500 group-hover:scale-110 group-hover:shadow-violet-200/50 border border-violet-50">
-                  <span className="group-hover:rotate-12 transition-transform duration-300">
-                    {step.icon}
-                  </span>
+                <div className="w-28 h-28 bg-white rounded-[2rem] shadow-[0_20px_40px_rgba(139,92,246,0.06)] flex items-center justify-center text-4xl transition-transform group-hover:scale-110 border border-violet-50">
+                  {step.icon}
                 </div>
-
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-violet-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg">
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-violet-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                   {idx + 1}
                 </div>
               </div>
 
               <div className="text-center space-y-3 px-2">
-                <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300">
-                  PASO {idx + 1}
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-violet-300">
+                  {t.step_label} {idx + 1}
                 </span>
                 <h3 className="text-lg font-serif font-bold text-gray-800">
                   {step.title}
@@ -79,24 +101,13 @@ const HowItWorks: React.FC<HowItWorksProps> = ({ language }) => {
         {/* CTA */}
         <div className="mt-24 text-center">
           <button
-            onClick={() => navigate('/crear')}
-            className="group relative inline-flex items-center gap-3 bg-gray-900 text-white px-12 py-5 rounded-full text-lg font-bold hover:scale-105 transition-all shadow-2xl overflow-hidden"
+            onClick={goToBasicPack}
+            className="relative group overflow-hidden bg-gray-900 text-white px-12 py-5 rounded-full text-lg font-bold transition-all transform hover:scale-105 shadow-2xl"
           >
             <div className="absolute inset-0 multi-glow opacity-0 group-hover:opacity-100 transition-opacity" />
-            <span className="relative z-10">{t.hero_cta}</span>
-            <svg
-              className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              />
-            </svg>
+            <span className="relative z-10">
+              {t.hero_cta}
+            </span>
           </button>
         </div>
       </div>

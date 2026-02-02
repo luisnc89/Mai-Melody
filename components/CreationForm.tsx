@@ -12,6 +12,13 @@ import {
 import { translations } from '../translations';
 import { saveOrder } from '../services/storage';
 import PayPalButton from './PayPalButton';
+import { ROUTE_SLUGS } from '../routes/slugs';
+import { getPackFromSlug } from '../routes/packSlugs';
+
+/* =========================
+   🌍 Idiomas soportados
+========================= */
+const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
 interface PhotoWithStyle {
   image: string;
@@ -29,15 +36,24 @@ const artisticStyles: ImageStyle[] = [
   'Animación 3D',
 ];
 
-const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
-  const t = translations[language];
+const CreationForm: React.FC = () => {
   const navigate = useNavigate();
-  const { pack } = useParams<{ pack: PackType }>();
+  const { lang, pack } = useParams<{ lang: Language; pack: string }>();
 
-  const selectedPack: PackType =
-    pack === 'basico' || pack === 'emocion' || pack === 'artistico'
-      ? pack
-      : 'basico';
+  const language: Language =
+    lang && SUPPORTED_LANGUAGES.includes(lang) ? lang : 'es';
+
+  const t = translations[language];
+
+  // ✅ FIX: slug → PackType interno
+  const selectedPack: PackType | null = pack
+    ? getPackFromSlug(pack, language)
+    : null;
+
+  if (!selectedPack) {
+    navigate(`/${language}/${ROUTE_SLUGS.packs[language]}`, { replace: true });
+    return null;
+  }
 
   const [formData, setFormData] = useState({
     songTitle: '',
@@ -55,13 +71,22 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
   const [orderComplete, setOrderComplete] = useState(false);
 
   const getPriceByPack = () => {
-    if (selectedPack === 'basico') return 25;
-    if (selectedPack === 'emocion') return 39;
-    return 49;
+    switch (selectedPack) {
+      case 'basico':
+        return 25;
+      case 'emocion':
+        return 39;
+      case 'artistico':
+        return 49;
+      default:
+        return 25;
+    }
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -94,16 +119,6 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
     setPhotos(prev => [...prev, ...images].slice(0, 15));
   };
 
-  const updatePhotoStyle = (index: number, style: ImageStyle) => {
-    setPhotos(prev =>
-      prev.map((p, i) => (i === index ? { ...p, style } : p))
-    );
-  };
-
-  const removePhoto = (index: number) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setShowPayment(true);
@@ -114,22 +129,17 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
       id: crypto.randomUUID(),
       pack: selectedPack,
       language,
-
       title: formData.songTitle,
       story: formData.memories,
       occasion: formData.occasion,
-
       from: formData.sender,
       to: formData.recipient,
-
       email: formData.deliveryEmail,
       musicalStyle: formData.musicalStyle,
       voice: formData.voice,
-
       photos: photos.map(p => p.image),
       imageStyle:
         selectedPack === 'artistico' ? photos[0]?.style : undefined,
-
       status: 'pendiente',
       createdAt: new Date().toISOString(),
     };
@@ -142,8 +152,12 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
     return (
       <div className="py-32 text-center space-y-6">
         <div className="text-6xl">🦋</div>
-        <h2 className="text-4xl font-serif">{t.payment_success}</h2>
-        <p className="text-gray-600">{t.approval_notice}</p>
+        <h2 className="text-4xl font-serif">
+          {t.payment_success}
+        </h2>
+        <p className="text-gray-600">
+          {t.approval_notice}
+        </p>
       </div>
     );
   }
@@ -152,14 +166,18 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
     <section className="py-20 px-4">
       <div className="max-w-4xl mx-auto bg-white rounded-[3rem] shadow-2xl border border-gray-100 p-8 md:p-12 space-y-10">
 
+        {/* 🔙 Volver */}
         <button
           type="button"
-          onClick={() => navigate('/packs')}
-          className="text-sm font-semibold text-violet-600 hover:underline"
+          onClick={() =>
+            navigate(`/${language}/${ROUTE_SLUGS.packs[language]}`)
+          }
+          className="inline-flex items-center gap-2 text-sm font-bold text-violet-600 hover:underline"
         >
-          ← Volver a los packs
+          ← {t.back_to_packs}
         </button>
 
+        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-8">
 
           <input
@@ -169,7 +187,6 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4"
             required
-            disabled={showPayment}
           />
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -180,7 +197,6 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
               onChange={handleInputChange}
               className="bg-gray-50 rounded-2xl p-4"
               required
-              disabled={showPayment}
             />
             <input
               name="recipient"
@@ -189,7 +205,6 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
               onChange={handleInputChange}
               className="bg-gray-50 rounded-2xl p-4"
               required
-              disabled={showPayment}
             />
           </div>
 
@@ -200,7 +215,6 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4 min-h-[140px]"
             required
-            disabled={showPayment}
           />
 
           <select
@@ -208,11 +222,20 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
             value={formData.musicalStyle}
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4"
-            disabled={showPayment}
           >
-            {['Pop','Rock','Balada','Reggaeton','Rap','Electrónica','Infantil'].map(s =>
-              <option key={s}>{s}</option>
-            )}
+            {[
+              'Pop',
+              'Rock',
+              'Balada',
+              'Reggaeton',
+              'Rap',
+              'Electrónica',
+              'Infantil',
+            ].map(style => (
+              <option key={style} value={style}>
+                {style}
+              </option>
+            ))}
           </select>
 
           <select
@@ -220,55 +243,27 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
             value={formData.voice}
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4"
-            disabled={showPayment}
           >
-            {['Masculina','Femenina','Infantil','Indiferente'].map(v =>
-              <option key={v}>{v}</option>
-            )}
+            {[
+              'Masculina',
+              'Femenina',
+              'Infantil',
+              'Indiferente',
+            ].map(v => (
+              <option key={v} value={v}>
+                {v}
+              </option>
+            ))}
           </select>
 
-          {(selectedPack === 'emocion' || selectedPack === 'artistico') && (
+          {(selectedPack === 'emocion' ||
+            selectedPack === 'artistico') && (
             <input
               type="file"
               multiple
               accept="image/*"
               onChange={handleFileChange}
-              disabled={showPayment}
             />
-          )}
-
-          {selectedPack === 'artistico' && photos.length > 0 && (
-            <div className="grid sm:grid-cols-2 gap-6">
-              {photos.map((photo, i) => (
-                <div key={i} className="bg-gray-50 rounded-2xl p-4 space-y-3">
-                  <img
-                    src={photo.image}
-                    alt=""
-                    className="w-full h-40 object-cover rounded-xl"
-                  />
-                  <select
-                    value={photo.style}
-                    onChange={(e) =>
-                      updatePhotoStyle(i, e.target.value as ImageStyle)
-                    }
-                    className="w-full rounded-xl p-2"
-                    disabled={showPayment}
-                  >
-                    {artisticStyles.map(style => (
-                      <option key={style}>{style}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => removePhoto(i)}
-                    className="text-xs text-red-500 underline"
-                    disabled={showPayment}
-                  >
-                    Eliminar foto
-                  </button>
-                </div>
-              ))}
-            </div>
           )}
 
           <input
@@ -279,7 +274,6 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4"
             required
-            disabled={showPayment}
           />
 
           {!showPayment && (
@@ -290,16 +284,11 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
               {t.proceed_to_payment}
             </button>
           )}
-
         </form>
 
         {showPayment && (
-          <div className="pt-12 space-y-6 animate-fade-in">
-            <h3 className="text-2xl font-serif text-center">
-              Confirmación de pago seguro
-            </h3>
-
-            <p className="text-center font-semibold">
+          <div className="pt-12 space-y-6 text-center">
+            <p className="font-bold text-lg">
               Total: {getPriceByPack()} €
             </p>
 
@@ -307,13 +296,8 @@ const CreationForm: React.FC<{ language: Language }> = ({ language }) => {
               amount={getPriceByPack()}
               onSuccess={handlePaymentSuccess}
             />
-
-            <p className="text-xs text-gray-500 text-center">
-              🔒 Pago seguro gestionado por PayPal
-            </p>
           </div>
         )}
-
       </div>
     </section>
   );

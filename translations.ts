@@ -109,6 +109,7 @@ export const translations = {
     form_voice_male: 'Masculina',
     form_voice_female: 'Femenina',
     form_voice_indifferent: 'Indiferente',
+    back_to_packs: 'Volver a los packs',
     blog_title: 'Historias que Inspiran',
     blog_desc: 'Descubre cómo la música transforma momentos en recuerdos eternos.',
     blog_read_more: 'Leer más',
@@ -238,6 +239,7 @@ export const translations = {
   form_voice_male: 'Male',
   form_voice_female: 'Female',
   form_voice_indifferent: 'Indifferent',
+  back_to_packs: 'Back to packs',
   blog_title: 'Stories that Inspire',
   blog_desc: 'Discover how music transforms moments into lasting memories.',
   blog_read_more: 'Read more',
@@ -367,6 +369,7 @@ ca: {
   form_voice_male: 'Masculina',
   form_voice_female: 'Femenina',
   form_voice_indifferent: 'Indiferent',
+  back_to_packs: 'Tornar als packs',
   blog_title: 'Històries que Inspiren',
   blog_desc: 'Descobreix com la música transforma moments en records eterns.',
   blog_read_more: 'Llegir més',
@@ -496,6 +499,7 @@ fr: {
   form_voice_male: 'Masculine',
   form_voice_female: 'Féminine',
   form_voice_indifferent: 'Indifférent',
+  back_to_packs: 'Retour aux packs',
   blog_title: 'Histoires Inspirantes',
   blog_desc: 'Découvrez comment la musique transforme des moments en souvenirs éternels.',
   blog_read_more: 'Lire la suite',
@@ -625,6 +629,7 @@ it: {
   form_voice_male: 'Maschile',
   form_voice_female: 'Femminile',
   form_voice_indifferent: 'Indifferente',
+  back_to_packs: 'Torna ai pacchetti',
   blog_title: 'Storie che Ispirano',
   blog_desc: 'Scopri come la musica trasforma momenti in ricordi eterni.',
   blog_read_more: 'Leggi di più',
@@ -645,3 +650,4 @@ it: {
   footer_copyright: '© 2024 MaiMelody. Fatto con ❤️, 🦋 e 🎵 per momenti unici.'
   }
 };
+

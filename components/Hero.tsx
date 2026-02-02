@@ -1,133 +1,147 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Language } from '../types';
 import { translations } from '../translations';
+import { ROUTE_SLUGS } from '../routes/slugs';
 
-interface HeroProps {
-  language: Language;
-}
+const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
-const Hero: React.FC<HeroProps> = ({ language }) => {
-  const t = translations[language];
+const PACK_SLUGS: Record<Language, { basico: string; artistico: string }> = {
+  es: { basico: 'basico', artistico: 'artistico' },
+  en: { basico: 'basic', artistico: 'artistic' },
+  ca: { basico: 'basic', artistico: 'artistic' },
+  fr: { basico: 'basique', artistico: 'artistique' },
+  it: { basico: 'base', artistico: 'artistico' },
+};
+
+const Hero: React.FC = () => {
+  const { lang } = useParams<{ lang: Language }>();
   const navigate = useNavigate();
 
-  const benefits = [
-    t.benefit_1,
-    t.benefit_2,
-    t.benefit_3,
-    t.benefit_4,
-  ];
+  const language: Language = SUPPORTED_LANGUAGES.includes(lang as Language)
+    ? (lang as Language)
+    : 'es';
 
-  const goToBasicPack = () => {
-    navigate('/crear/basico');
-  };
-
-  const goToEmotionPack = () => {
-    navigate('/crear/emocion');
-  };
+  const t = translations[language];
 
   return (
-    <section className="relative pt-32 pb-20 px-4 overflow-hidden">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 relative z-10">
+    <section className="relative pt-32 pb-24 px-4">
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
 
-        {/* TEXTO IZQUIERDA */}
-        <div className="lg:w-1/2 space-y-8 fade-in">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 bg-violet-100 text-violet-700 rounded-full text-xs font-bold uppercase tracking-widest animate-pulse">
-            <span>🦋 MaiMelody Magic</span>
+        {/* TEXTO */}
+        <div className="space-y-8">
+          <div className="inline-flex items-center px-4 py-1.5 bg-violet-100 text-violet-700 rounded-full text-xs font-bold uppercase tracking-widest">
+            🦋 MaiMelody Magic
           </div>
 
-          <h1 className="text-5xl lg:text-7xl leading-tight font-serif text-gray-900">
+          <h1 className="text-5xl lg:text-7xl font-serif leading-tight text-gray-900">
             {t.hero_h1}
           </h1>
 
-          <p className="text-xl text-violet-600 font-medium flex items-center gap-2">
-            <span className="text-2xl">♪</span> {t.hero_sub}
+          <p className="text-xl text-violet-600 font-medium">
+            ♪ {t.hero_sub}
           </p>
 
-          <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
+          <p className="text-lg text-gray-600 max-w-lg">
             {t.hero_desc}
           </p>
 
           {/* BOTONES */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+
+            {/* CTA PRINCIPAL — MISMO ESTILO QUE ArtisticVideoCreator */}
             <button
-              onClick={goToBasicPack}
-              className="relative group overflow-hidden bg-gray-900 text-white px-10 py-5 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-xl"
+              type="button"
+              onClick={() =>
+                navigate(
+                  `/${language}/${ROUTE_SLUGS.create[language]}/${PACK_SLUGS[language].basico}`
+                )
+              }
+              className="
+                relative group
+                overflow-hidden
+                bg-gray-900
+                text-white
+                px-10 py-5
+                rounded-full
+                text-lg font-semibold
+                transition-all
+                transform hover:scale-105
+                shadow-xl
+                flex items-center justify-center gap-2
+              "
             >
               <div className="absolute inset-0 multi-glow opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <span className="relative z-10">
-                 {t.hero_cta}
+                🎵 Crea tu canción
               </span>
             </button>
 
+            {/* CTA SECUNDARIO */}
             <button
-              onClick={goToEmotionPack}
-              className="bg-transparent text-gray-900 border-2 border-violet-200 px-10 py-5 rounded-full text-lg font-semibold hover:border-violet-400 hover:bg-violet-50 transition-all transform hover:scale-105"
+              type="button"
+              onClick={() =>
+                navigate(
+                  `/${language}/${ROUTE_SLUGS.create[language]}/${PACK_SLUGS[language].artistico}`
+                )
+              }
+              className="
+                border-2 border-violet-300
+                text-gray-900
+                px-10 py-5
+                rounded-full
+                text-lg font-semibold
+                hover:bg-violet-50 hover:scale-105
+                transition-all duration-300
+                flex items-center justify-center gap-2
+              "
             >
-              🎬 {t.hero_cta_secondary}
+              🎬 Crear tu vídeo
             </button>
           </div>
 
           {/* BENEFICIOS */}
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 pt-4">
-            {benefits.map((benefit, i) => (
-              <li
-                key={i}
-                className="flex items-center space-x-2 text-sm text-gray-600 font-medium"
-              >
-                <svg
-                  className="w-5 h-5 text-violet-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                <span>{benefit}</span>
-              </li>
-            ))}
+          <ul className="grid grid-cols-2 gap-3 text-sm text-gray-600 pt-4">
+            <li>✔ {t.benefit_1}</li>
+            <li>✔ {t.benefit_2}</li>
+            <li>✔ {t.benefit_3}</li>
+            <li>✔ {t.benefit_4}</li>
           </ul>
         </div>
 
-        {/* IMÁGENES DERECHA */}
-        <div className="lg:w-1/2 relative">
-          <div className="absolute -top-10 -left-10 text-violet-400/40 text-6xl butterfly-float">🦋</div>
-          <div className="absolute -bottom-10 -right-10 text-pink-400/40 text-6xl butterfly-float">🦋</div>
+        {/* IMÁGENES */}
+        <div className="grid grid-cols-2 gap-6 items-stretch">
 
-          <div className="grid grid-cols-2 gap-4 relative">
-            <div className="space-y-4">
+          {/* Izquierda: pareja + televisión */}
+          <div className="flex flex-col gap-6">
+            <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-xl">
               <img
                 src="/assets/hero/pareja.png"
-                alt="Pareja escuchando su canción"
-                className="rounded-3xl shadow-lg object-cover w-full h-[420px] hover:scale-[1.02] transition-transform duration-500"
-              />
-
-              <img
-                src="/assets/hero/television.png"
-                alt="Familia reviviendo recuerdos"
-                className="rounded-3xl shadow-lg object-cover w-full h-[420px] hover:scale-[1.02] transition-transform duration-500"
+                alt=""
+                className="w-full h-full object-cover"
               />
             </div>
 
-            <div className="flex items-center">
+            <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-xl">
               <img
-                src="/assets/hero/fiesta.png"
-                alt="Concierto y emoción musical"
-                className="rounded-3xl shadow-lg object-cover w-full h-[600px] hover:scale-[1.02] transition-transform duration-500"
+                src="/assets/hero/television.png"
+                alt=""
+                className="w-full h-full object-cover"
               />
             </div>
           </div>
 
-          <div className="absolute -z-10 -top-20 -right-20 w-80 h-80 bg-violet-200/40 rounded-full blur-3xl animate-pulse"></div>
-          <div
-            className="absolute -z-10 -bottom-20 -left-20 w-80 h-80 bg-pink-100/30 rounded-full blur-3xl animate-pulse"
-            style={{ animationDelay: '2s' }}
-          />
+          {/* Derecha: fiesta centrada */}
+          <div className="flex items-center">
+            <div className="aspect-[3/5] w-full rounded-3xl overflow-hidden shadow-xl">
+              <img
+                src="/assets/hero/fiesta.png"
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+
         </div>
       </div>
     </section>

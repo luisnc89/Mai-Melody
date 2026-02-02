@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -14,13 +14,19 @@ import ChatBot from './components/ChatBot';
 import ArtisticVideoCreator from './components/ArtisticVideoCreator';
 import Blog from './components/Blog';
 import BlogPostDetail from './components/BlogPost';
-import Admin from './components/Admin';
 import Login from './components/Login';
 
-import { Language, BlogPost } from './types';
-import { translations } from './translations';
+import { Language } from './types';
+import { ROUTE_SLUGS } from './routes/slugs';
 
-/* DECORACIONES */
+/* =========================
+   🌍 Idiomas soportados
+========================= */
+const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
+
+/* =========================
+   🎨 Decoraciones
+========================= */
 const ButterflyDecoration = () => (
   <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
     <div className="absolute top-[10%] left-[5%] butterfly-float text-violet-500/30 text-4xl">🦋</div>
@@ -34,129 +40,111 @@ const NoteDecoration = () => (
   </div>
 );
 
-const App: React.FC = () => {
-  const location = useLocation();
+/* =========================
+   🧱 Layout con idioma
+========================= */
+const LanguageLayout: React.FC = () => {
+  const { lang } = useParams<{ lang: Language }>();
 
-  const [language, setLanguage] = useState<Language>('es');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activePost, setActivePost] = useState<BlogPost | null>(null);
+  const language: Language = SUPPORTED_LANGUAGES.includes(lang as Language)
+    ? (lang as Language)
+    : 'es';
 
-  const t = translations[language];
-
-  const handleLogin = (success: boolean) => {
-    if (success) setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
+  // Si el idioma no es válido → redirigir
+  if (!lang || !SUPPORTED_LANGUAGES.includes(lang)) {
+    return <Navigate to="/es" replace />;
+  }
 
   return (
     <div className="min-h-screen relative bg-warm-white">
       <ButterflyDecoration />
       <NoteDecoration />
 
-      <Header
-        language={language}
-        setLanguage={setLanguage}
-        isAuthenticated={isAuthenticated}
-      />
+      <Header isAuthenticated={false} />
 
       <main className="relative z-10 pt-20">
         <Routes>
 
           {/* HOME */}
           <Route
-            path="/"
+            index
             element={
               <>
-                <Hero language={language} />
-                <UseCases language={language} />
-                <ArtisticVideoCreator language={language} />
-                <Examples language={language} />
-                <HowItWorks language={language} />
-                <Testimonials language={language} />
-                <SEOBlock language={language} />
+                <Hero />
+                <UseCases />
+                <ArtisticVideoCreator />
+                <Examples />
+                <HowItWorks />
+                <Testimonials />
+                <SEOBlock />
               </>
             }
           />
 
           {/* PACKS */}
           <Route
-            path="/packs"
-            element={<Pricing language={language} />}
+            path={ROUTE_SLUGS.packs[language]}
+            element={<Pricing />}
           />
 
-          {/* CREAR CON PACK */}
+          {/* CREAR */}
           <Route
-            path="/crear/:pack"
-            element={<CreationForm language={language} />}
+            path={`${ROUTE_SLUGS.create[language]}/:pack`}
+            element={<CreationForm />}
           />
 
           {/* CÓMO FUNCIONA */}
           <Route
-            path="/como-funciona"
-            element={<HowItWorks language={language} />}
+            path={ROUTE_SLUGS.how[language]}
+            element={<HowItWorks />}
           />
 
           {/* BLOG */}
           <Route
-            path="/blog"
-            element={
-              <Blog
-                language={language}
-                onPostClick={setActivePost}
-              />
-            }
+            path={ROUTE_SLUGS.blog[language]}
+            element={<Blog />}
           />
 
           <Route
-            path="/blog/:slug"
-            element={
-              activePost ? (
-                <BlogPostDetail
-                  language={language}
-                  post={activePost}
-                  onBack={() => {}}
-                />
-              ) : (
-                <Navigate to="/blog" />
-              )
-            }
+            path={`${ROUTE_SLUGS.blog[language]}/:slug`}
+            element={<BlogPostDetail />}
           />
 
           {/* ADMIN */}
           <Route
-            path="/admin"
-            element={
-              isAuthenticated ? (
-                <Admin
-                  language={language}
-                  onLogout={handleLogout}
-                />
-              ) : (
-                <Login
-                  language={language}
-                  onLogin={handleLogin}
-                />
-              )
-            }
+            path={ROUTE_SLUGS.admin[language]}
+            element={<Login />}
           />
 
           {/* FALLBACK */}
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route
+            path="*"
+            element={<Navigate to={`/${language}`} replace />}
+          />
 
         </Routes>
       </main>
 
-      <footer className="bg-gray-900 text-white py-12 px-4 relative z-10">
-        <div className="max-w-7xl mx-auto text-center text-xs text-gray-400">
-          {t.footer_copyright}
-        </div>
-      </footer>
-
-      <ChatBot language={language} />
+      <ChatBot />
     </div>
+  );
+};
+
+/* =========================
+   🚀 App principal
+========================= */
+const App: React.FC = () => {
+  return (
+    <Routes>
+      {/* / → /es */}
+      <Route path="/" element={<Navigate to="/es" replace />} />
+
+      {/* Idiomas */}
+      <Route path="/:lang/*" element={<LanguageLayout />} />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/es" replace />} />
+    </Routes>
   );
 };
 

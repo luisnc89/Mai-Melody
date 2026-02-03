@@ -25,16 +25,23 @@ interface PhotoWithStyle {
   style?: ImageStyle;
 }
 
-const artisticStyles: ImageStyle[] = [
-  'Foto Original',
-  'Acuarela',
-  'Anime 2D',
-  'Cartoon Mágico',
-  'Lápiz',
-  'Cómic',
-  'Blanco y Negro',
-  'Animación 3D',
-];
+/* =========================
+   🎵 Estilos musicales
+========================= */
+const getMusicalStyles = (language: Language): string[] => {
+  switch (language) {
+    case 'en':
+      return ['Pop', 'Rock', 'Ballad', 'Acoustic', 'Reggaeton', 'Rap', 'Electronic', 'Children'];
+    case 'ca':
+      return ['Pop', 'Rock', 'Balada', 'Acústic', 'Reggaeton', 'Rap', 'Electrònica', 'Infantil'];
+    case 'fr':
+      return ['Pop', 'Rock', 'Ballade', 'Acoustique', 'Reggaeton', 'Rap', 'Électronique', 'Enfant'];
+    case 'it':
+      return ['Pop', 'Rock', 'Ballata', 'Acustico', 'Reggaeton', 'Rap', 'Elettronica', 'Infantile'];
+    default:
+      return ['Pop', 'Rock', 'Balada', 'Acústico', 'Reggaeton', 'Rap', 'Electrónica', 'Infantil'];
+  }
+};
 
 const CreationForm: React.FC = () => {
   const navigate = useNavigate();
@@ -45,7 +52,6 @@ const CreationForm: React.FC = () => {
 
   const t = translations[language];
 
-  // ✅ FIX: slug → PackType interno
   const selectedPack: PackType | null = pack
     ? getPackFromSlug(pack, language)
     : null;
@@ -68,6 +74,7 @@ const CreationForm: React.FC = () => {
 
   const [photos, setPhotos] = useState<PhotoWithStyle[]>([]);
   const [showPayment, setShowPayment] = useState(false);
+  const [showBankTransfer, setShowBankTransfer] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
 
   const getPriceByPack = () => {
@@ -84,9 +91,7 @@ const CreationForm: React.FC = () => {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -103,13 +108,7 @@ const CreationForm: React.FC = () => {
           new Promise<PhotoWithStyle>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () =>
-              resolve({
-                image: reader.result as string,
-                style:
-                  selectedPack === 'artistico'
-                    ? 'Foto Original'
-                    : undefined,
-              });
+              resolve({ image: reader.result as string });
             reader.onerror = reject;
             reader.readAsDataURL(file);
           })
@@ -124,7 +123,7 @@ const CreationForm: React.FC = () => {
     setShowPayment(true);
   };
 
-  const handlePaymentSuccess = () => {
+  const createOrder = (status: SongOrder['status']) => {
     const order: SongOrder = {
       id: crypto.randomUUID(),
       pack: selectedPack,
@@ -138,9 +137,7 @@ const CreationForm: React.FC = () => {
       musicalStyle: formData.musicalStyle,
       voice: formData.voice,
       photos: photos.map(p => p.image),
-      imageStyle:
-        selectedPack === 'artistico' ? photos[0]?.style : undefined,
-      status: 'pendiente',
+      status,
       createdAt: new Date().toISOString(),
     };
 
@@ -152,12 +149,8 @@ const CreationForm: React.FC = () => {
     return (
       <div className="py-32 text-center space-y-6">
         <div className="text-6xl">🦋</div>
-        <h2 className="text-4xl font-serif">
-          {t.payment_success}
-        </h2>
-        <p className="text-gray-600">
-          {t.approval_notice}
-        </p>
+        <h2 className="text-4xl font-serif">{t.payment_success}</h2>
+        <p className="text-gray-600">{t.approval_notice}</p>
       </div>
     );
   }
@@ -166,20 +159,15 @@ const CreationForm: React.FC = () => {
     <section className="py-20 px-4">
       <div className="max-w-4xl mx-auto bg-white rounded-[3rem] shadow-2xl border border-gray-100 p-8 md:p-12 space-y-10">
 
-        {/* 🔙 Volver */}
         <button
           type="button"
-          onClick={() =>
-            navigate(`/${language}/${ROUTE_SLUGS.packs[language]}`)
-          }
-          className="inline-flex items-center gap-2 text-sm font-bold text-violet-600 hover:underline"
+          onClick={() => navigate(`/${language}/${ROUTE_SLUGS.packs[language]}`)}
+          className="text-sm font-bold text-violet-600 hover:underline"
         >
           ← {t.back_to_packs}
         </button>
 
-        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-8">
-
           <input
             name="songTitle"
             placeholder={t.song_title_label}
@@ -223,18 +211,8 @@ const CreationForm: React.FC = () => {
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4"
           >
-            {[
-              'Pop',
-              'Rock',
-              'Balada',
-              'Reggaeton',
-              'Rap',
-              'Electrónica',
-              'Infantil',
-            ].map(style => (
-              <option key={style} value={style}>
-                {style}
-              </option>
+            {getMusicalStyles(language).map(style => (
+              <option key={style} value={style}>{style}</option>
             ))}
           </select>
 
@@ -244,26 +222,13 @@ const CreationForm: React.FC = () => {
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4"
           >
-            {[
-              'Masculina',
-              'Femenina',
-              'Infantil',
-              'Indiferente',
-            ].map(v => (
-              <option key={v} value={v}>
-                {v}
-              </option>
+            {['Masculina', 'Femenina', 'Infantil', 'Indiferente'].map(v => (
+              <option key={v} value={v}>{v}</option>
             ))}
           </select>
 
-          {(selectedPack === 'emocion' ||
-            selectedPack === 'artistico') && (
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileChange}
-            />
+          {(selectedPack === 'emocion' || selectedPack === 'artistico') && (
+            <input type="file" multiple accept="image/*" onChange={handleFileChange} />
           )}
 
           <input
@@ -287,17 +252,43 @@ const CreationForm: React.FC = () => {
         </form>
 
         {showPayment && (
-          <div className="pt-12 space-y-6 text-center">
-            <p className="font-bold text-lg">
-              Total: {getPriceByPack()} €
-            </p>
+          <div className="pt-12 space-y-8 text-center">
+            <p className="font-bold text-lg">Total: {getPriceByPack()} €</p>
 
             <PayPalButton
               amount={getPriceByPack()}
-              onSuccess={handlePaymentSuccess}
+              onSuccess={() => createOrder('pendiente')}
             />
+
+            <div className="max-w-xl mx-auto">
+              <button
+                type="button"
+                onClick={() => setShowBankTransfer(prev => !prev)}
+                className="w-full flex justify-between px-6 py-4 rounded-full border font-semibold"
+              >
+                🏦 Pagar por transferencia bancaria
+                <span>{showBankTransfer ? '−' : '+'}</span>
+              </button>
+
+              {showBankTransfer && (
+                <div className="mt-6 p-6 rounded-3xl bg-gray-50 border space-y-4 text-sm">
+                  <p><strong>Titular:</strong> MaiMelody</p>
+                  <p><strong>IBAN:</strong> ES95 0182 1828 0702 0151 9096</p>
+                  <p><strong>Concepto:</strong> Pedido + tu email</p>
+
+                  <button
+                    type="button"
+                    onClick={() => createOrder('pendiente_transferencia')}
+                    className="w-full mt-6 bg-gray-900 text-white py-4 rounded-full font-bold"
+                  >
+                    He realizado la transferencia
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
+
       </div>
     </section>
   );

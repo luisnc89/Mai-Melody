@@ -131,3 +131,17 @@ export interface SongOrder {
 
   createdAt: string;
 }
+
+
+/* =========================
+   GOOGLE ANALYTICS (GLOBAL)
+   SOLO PARA TYPESCRIPT
+========================= */
+
+export {};
+
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}

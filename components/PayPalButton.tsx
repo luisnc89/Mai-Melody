@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 declare global {
   interface Window {
     paypal: any;
+    gtag?: (...args: any[]) => void;
   }
 }
 
@@ -47,6 +48,16 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({ amount, onSuccess }) => {
 
       onApprove: async (_data: any, actions: any) => {
         try {
+          // ✅ Evento Google Analytics: PayPal aprobado
+          if (window.gtag) {
+            window.gtag('event', 'paypal_approved', {
+              event_category: 'payment',
+              event_label: 'paypal',
+              value: amount,
+              currency: 'EUR',
+            });
+          }
+
           await actions.order.capture();
           onSuccess();
         } catch (err) {

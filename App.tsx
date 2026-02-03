@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 
 import Header from './components/Header';
@@ -15,6 +15,8 @@ import ArtisticVideoCreator from './components/ArtisticVideoCreator';
 import Blog from './components/Blog';
 import BlogPostDetail from './components/BlogPost';
 import Login from './components/Login';
+import Admin from './components/Admin';
+import { AdminRoute } from './components/AdminRoute';
 
 import { Language } from './types';
 import { ROUTE_SLUGS } from './routes/slugs';
@@ -25,7 +27,7 @@ import { ROUTE_SLUGS } from './routes/slugs';
 const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
 /* =========================
-   🎨 Decoraciones
+   🎨 Decoraciones (SE MANTIENEN)
 ========================= */
 const ButterflyDecoration = () => (
   <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
@@ -57,15 +59,17 @@ const LanguageLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen relative bg-warm-white">
+      {/* Decoraciones originales */}
       <ButterflyDecoration />
       <NoteDecoration />
 
+      {/* Header (no se toca aún) */}
       <Header isAuthenticated={false} />
 
       <main className="relative z-10 pt-20">
         <Routes>
 
-          {/* HOME */}
+          {/* HOME (IDÉNTICA A LA TUYA) */}
           <Route
             index
             element={
@@ -110,10 +114,28 @@ const LanguageLayout: React.FC = () => {
             element={<BlogPostDetail />}
           />
 
-          {/* ADMIN */}
+          {/* =========================
+             🔐 ADMIN (CAMBIO CLAVE)
+             Antes: /admin → Login
+             Ahora:
+             /admin/login → Login
+             /admin → Admin protegido
+          ========================= */}
+
+          {/* LOGIN ADMIN */}
+          <Route
+            path={`${ROUTE_SLUGS.admin[language]}/login`}
+            element={<Login />}
+          />
+
+          {/* PANEL ADMIN (PROTEGIDO) */}
           <Route
             path={ROUTE_SLUGS.admin[language]}
-            element={<Login />}
+            element={
+              <AdminRoute>
+                <Admin />
+              </AdminRoute>
+            }
           />
 
           {/* FALLBACK */}

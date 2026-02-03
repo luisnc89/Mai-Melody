@@ -26,22 +26,24 @@ interface PhotoWithStyle {
 }
 
 /* =========================
-   🎵 Estilos musicales
+   🎵 Estilos musicales (DEBEN coincidir con MusicalStyle)
 ========================= */
-const getMusicalStyles = (language: Language): string[] => {
-  switch (language) {
-    case 'en':
-      return ['Pop', 'Rock', 'Ballad', 'Acoustic', 'Reggaeton', 'Rap', 'Electronic', 'Children'];
-    case 'ca':
-      return ['Pop', 'Rock', 'Balada', 'Acústic', 'Reggaeton', 'Rap', 'Electrònica', 'Infantil'];
-    case 'fr':
-      return ['Pop', 'Rock', 'Ballade', 'Acoustique', 'Reggaeton', 'Rap', 'Électronique', 'Enfant'];
-    case 'it':
-      return ['Pop', 'Rock', 'Ballata', 'Acustico', 'Reggaeton', 'Rap', 'Elettronica', 'Infantile'];
-    default:
-      return ['Pop', 'Rock', 'Balada', 'Acústico', 'Reggaeton', 'Rap', 'Electrónica', 'Infantil'];
-  }
-};
+const MUSICAL_STYLES: MusicalStyle[] = [
+  'Pop',
+  'Rock',
+  'Balada',
+  'Reggaeton',
+  'Rap',
+  'Electrónica',
+  'Infantil',
+];
+
+const VOICES: VoiceType[] = [
+  'Masculina',
+  'Femenina',
+  'Infantil',
+  'Indiferente',
+];
 
 const CreationForm: React.FC = () => {
   const navigate = useNavigate();
@@ -61,6 +63,9 @@ const CreationForm: React.FC = () => {
     return null;
   }
 
+  /* =========================
+     🧾 Estado del formulario
+  ========================= */
   const [formData, setFormData] = useState({
     songTitle: '',
     sender: '',
@@ -91,25 +96,34 @@ const CreationForm: React.FC = () => {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  /* =========================
+     📸 SUBIDA DE FOTOS (FIX TS)
+  ========================= */
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
 
-    const files = Array.from(e.target.files).slice(0, 15);
+    const files = Array.from(e.target.files) as File[];
+    const limitedFiles = files.slice(0, 15);
 
     const images = await Promise.all(
-      files.map(
+      limitedFiles.map(
         file =>
           new Promise<PhotoWithStyle>((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = () =>
+
+            reader.onload = () => {
               resolve({ image: reader.result as string });
-            reader.onerror = reject;
+            };
+
+            reader.onerror = () => reject(reader.error);
             reader.readAsDataURL(file);
           })
       )
@@ -123,20 +137,29 @@ const CreationForm: React.FC = () => {
     setShowPayment(true);
   };
 
+  /* =========================
+     ✅ CREAR PEDIDO (YA CORRECTO)
+  ========================= */
   const createOrder = (status: SongOrder['status']) => {
     const order: SongOrder = {
       id: crypto.randomUUID(),
+
       pack: selectedPack,
       language,
+
       title: formData.songTitle,
       story: formData.memories,
       occasion: formData.occasion,
+
       from: formData.sender,
       to: formData.recipient,
       email: formData.deliveryEmail,
+
       musicalStyle: formData.musicalStyle,
       voice: formData.voice,
+
       photos: photos.map(p => p.image),
+
       status,
       createdAt: new Date().toISOString(),
     };
@@ -161,7 +184,9 @@ const CreationForm: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => navigate(`/${language}/${ROUTE_SLUGS.packs[language]}`)}
+          onClick={() =>
+            navigate(`/${language}/${ROUTE_SLUGS.packs[language]}`)
+          }
           className="text-sm font-bold text-violet-600 hover:underline"
         >
           ← {t.back_to_packs}
@@ -211,8 +236,10 @@ const CreationForm: React.FC = () => {
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4"
           >
-            {getMusicalStyles(language).map(style => (
-              <option key={style} value={style}>{style}</option>
+            {MUSICAL_STYLES.map(style => (
+              <option key={style} value={style}>
+                {style}
+              </option>
             ))}
           </select>
 
@@ -222,13 +249,20 @@ const CreationForm: React.FC = () => {
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4"
           >
-            {['Masculina', 'Femenina', 'Infantil', 'Indiferente'].map(v => (
-              <option key={v} value={v}>{v}</option>
+            {VOICES.map(v => (
+              <option key={v} value={v}>
+                {v}
+              </option>
             ))}
           </select>
 
           {(selectedPack === 'emocion' || selectedPack === 'artistico') && (
-            <input type="file" multiple accept="image/*" onChange={handleFileChange} />
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
+            />
           )}
 
           <input
@@ -278,7 +312,7 @@ const CreationForm: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => createOrder('pendiente_transferencia')}
+                    onClick={() => createOrder('pendiente')}
                     className="w-full mt-6 bg-gray-900 text-white py-4 rounded-full font-bold"
                   >
                     He realizado la transferencia
@@ -288,7 +322,6 @@ const CreationForm: React.FC = () => {
             </div>
           </div>
         )}
-
       </div>
     </section>
   );

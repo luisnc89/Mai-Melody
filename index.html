@@ -20,6 +20,15 @@
     rel="stylesheet"
   >
 
+  <!-- ✅ GOOGLE ANALYTICS -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DMS6WLHQWZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DMS6WLHQWZ');
+  </script>
+
   <!-- Global styles -->
   <style>
     :root {
@@ -95,7 +104,7 @@
     }
   </style>
 
-  <!-- Import map (ok) -->
+  <!-- Import map -->
   <script type="importmap">
   {
     "imports": {
@@ -114,7 +123,7 @@
 <body class="bg-warm-white text-gray-800 overflow-x-hidden">
   <div id="root"></div>
 
-  <!-- ✅ PAYPAL SDK (CORRECTO, SIN ASYNC, EN BODY) -->
+  <!-- ✅ PAYPAL SDK -->
   <script
     src="https://www.paypal.com/sdk/js?client-id=AYfQw7tHIKAUyrtZlDeIz5dfTMfHc1yh1YQVePsRRlAIt9fzD7hVYboyw_1aCe9HtOW_DpMAAn5UhpUP&currency=EUR&intent=capture">
   </script>

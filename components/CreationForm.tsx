@@ -31,7 +31,8 @@ interface PhotoWithStyle {
 const MUSICAL_STYLES: MusicalStyle[] = [
   'Pop',
   'Rock',
-  'Balada',
+  'Acustico',
+  'Epico',
   'Reggaeton',
   'Rap',
   'Electrónica',

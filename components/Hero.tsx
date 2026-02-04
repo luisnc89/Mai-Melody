@@ -96,7 +96,7 @@ const Hero: React.FC = () => {
                 flex items-center justify-center gap-2
               "
             >
-              🎬 Crear tu vídeo
+              🎬 Crea tu vídeo
             </button>
           </div>
 

@@ -18,7 +18,8 @@ const UseCases: React.FC = () => {
     { icon: '❤️', label: t.case_love },
     { icon: '👨‍👩‍👧‍👦', label: t.case_family },
     { icon: '🕊️', label: t.case_memorial },
-    { icon: '🎁', label: t.case_unique },
+    { icon: '🎁', label: t.case_unique } ,
+    { icon: '💍', label: t.case_wedding },
   ];
 
   return (
@@ -36,7 +37,7 @@ const UseCases: React.FC = () => {
         </div>
 
         {/* CARDS */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
           {cases.map((item, idx) => (
             <div
               key={idx}

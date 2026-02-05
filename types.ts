@@ -1,12 +1,12 @@
 /* =========================
-   IDIOMAS
+   🌍 IDIOMAS
 ========================= */
 
 export type Language = 'es' | 'en' | 'fr' | 'it' | 'ca';
 
 
 /* =========================
-   SECCIONES / RUTAS
+   🧭 SECCIONES / RUTAS
 ========================= */
 
 export type Section =
@@ -21,71 +21,65 @@ export type Section =
 
 
 /* =========================
-   PACKS
+   📦 PACKS
 ========================= */
 
 export type PackType = 'basico' | 'emocion' | 'artistico';
 
 
 /* =========================
-   ESTILOS DE IMAGEN (PACK ARTÍSTICO)
+   🎨 ESTILOS DE IMAGEN (PACK ARTÍSTICO)
+   ⚠️ Valores internos estables (NO traducidos)
 ========================= */
 
 export type ImageStyle =
-  | 'Foto Original'
-  | 'Acuarela'
-  | 'Anime 2D'
-  | 'Cartoon Mágico'
-  | 'Lápiz'
-  | 'Cómic'
-  | 'Blanco y Negro'
-  | 'Animación 3D';
+  | 'original'
+  | 'watercolor'
+  | 'anime'
+  | 'cartoon'
+  | 'pencil'
+  | 'comic'
+  | 'bw'
+  | 'animation_3d';
 
 
 /* =========================
-   ESTADO DEL PEDIDO
+   📌 ESTADO DEL PEDIDO
 ========================= */
 
 export type OrderStatus = 'pendiente' | 'en_proceso' | 'completado';
 
 
 /* =========================
-   ESTILO MUSICAL
+   🎵 ESTILO MUSICAL
+   ✅ ALINEADO CON CreationForm.tsx
 ========================= */
 
 export type MusicalStyle =
-  | 'Pop'
-  | 'Rock'
-  | 'Balada'
-  | 'Reggaeton'
-  | 'Rap'
-  | 'Electrónica'
-  | 'Infantil';
+  | 'pop'
+  | 'rock'
+  | 'acoustic'
+  | 'epic'
+  | 'reggaeton'
+  | 'rap'
+  | 'electronic'
+  | 'kids';
 
 
 /* =========================
-   VOZ
+   🎤 VOZ
+   ✅ ALINEADO CON CreationForm.tsx
 ========================= */
 
 export type VoiceType =
-  | 'Masculina'
-  | 'Femenina'
-  | 'Infantil'
-  | 'Indiferente';
+  | 'male'
+  | 'female'
+  | 'kids'
+  | 'indifferent';
 
 
 /* =========================
-   IMÁGENES SUBIDAS
-========================= */
-
-export interface PhotoWithStyle {
-  file: File;
-  preview: string;
-}
-
-
-/* =========================
-   BLOG
+   📰 BLOG
 ========================= */
 
 export interface BlogPost {
@@ -100,7 +94,7 @@ export interface BlogPost {
 
 
 /* =========================
-   PEDIDO (FRONT + ADMIN)
+   🎼 PEDIDO (FRONT + ADMIN)
 ========================= */
 
 export interface SongOrder {
@@ -118,23 +112,18 @@ export interface SongOrder {
 
   email: string;
 
-  /* 🎵 NUEVO */
   musicalStyle: MusicalStyle;
-
-  /* 🎤 NUEVO */
   voice: VoiceType;
 
   photos: string[];
-  imageStyle?: ImageStyle;
 
   status: OrderStatus;
-
   createdAt: string;
 }
 
 
 /* =========================
-   GOOGLE ANALYTICS (GLOBAL)
+   📊 GOOGLE ANALYTICS (GLOBAL)
    SOLO PARA TYPESCRIPT
 ========================= */
 

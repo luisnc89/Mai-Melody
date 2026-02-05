@@ -9,17 +9,6 @@ import { ROUTE_SLUGS } from '../routes/slugs';
 ========================= */
 const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
-/* =========================
-   🗺️ Slugs de packs por idioma
-========================= */
-const PACK_SLUGS: Record<Language, { basico: string }> = {
-  es: { basico: 'basico' },
-  en: { basico: 'basic' },
-  ca: { basico: 'basic' },
-  fr: { basico: 'basique' },
-  it: { basico: 'base' },
-};
-
 const HowItWorks: React.FC = () => {
   const { lang } = useParams<{ lang: Language }>();
   const navigate = useNavigate();
@@ -38,10 +27,9 @@ const HowItWorks: React.FC = () => {
     { title: t.how_step5_title, desc: t.how_step5_desc, icon: '🎁' },
   ];
 
-  const goToBasicPack = () => {
-    navigate(
-      `/${language}/${ROUTE_SLUGS.create[language]}/${PACK_SLUGS[language].basico}`
-    );
+  /* 👉 CTA SIEMPRE A /[lang]/packs */
+  const goToPacks = () => {
+    navigate(`/${language}/${ROUTE_SLUGS.packs[language]}`);
   };
 
   return (
@@ -84,9 +72,6 @@ const HowItWorks: React.FC = () => {
               </div>
 
               <div className="text-center space-y-3 px-2">
-                <span className="block text-[10px] font-bold uppercase tracking-widest text-violet-300">
-                  {t.step_label} {idx + 1}
-                </span>
                 <h3 className="text-lg font-serif font-bold text-gray-800">
                   {step.title}
                 </h3>
@@ -101,7 +86,7 @@ const HowItWorks: React.FC = () => {
         {/* CTA */}
         <div className="mt-24 text-center">
           <button
-            onClick={goToBasicPack}
+            onClick={goToPacks}
             className="relative group overflow-hidden bg-gray-900 text-white px-12 py-5 rounded-full text-lg font-bold transition-all transform hover:scale-105 shadow-2xl"
           >
             <div className="absolute inset-0 multi-glow opacity-0 group-hover:opacity-100 transition-opacity" />

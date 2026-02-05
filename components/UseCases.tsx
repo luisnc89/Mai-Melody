@@ -14,20 +14,20 @@ const UseCases: React.FC = () => {
   const t = translations[language];
 
   const cases = [
-    { icon: '🎂', label: t.case_birthday },
-    { icon: '❤️', label: t.case_love },
-    { icon: '👨‍👩‍👧‍👦', label: t.case_family },
-    { icon: '🕊️', label: t.case_memorial },
-    { icon: '🎁', label: t.case_unique } ,
-    { icon: '💍', label: t.case_wedding },
+    { icon: '🎂', label: t.case_birthday, bg: 'bg-pink-50' },
+    { icon: '❤️', label: t.case_love, bg: 'bg-rose-50' },
+    { icon: '👨‍👩‍👧‍👦', label: t.case_family, bg: 'bg-amber-50' },
+    { icon: '🕊️', label: t.case_memorial, bg: 'bg-slate-50' },
+    { icon: '🎁', label: t.case_unique, bg: 'bg-violet-50' },
+    { icon: '💍', label: t.case_wedding, bg: 'bg-indigo-50' },
   ];
 
   return (
-    <section className="py-24 px-4">
+    <section className="py-24 px-4 bg-[#FAF9F7]">
       <div className="max-w-7xl mx-auto">
 
         {/* TÍTULO */}
-        <div className="text-center mb-20 space-y-4">
+        <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl lg:text-5xl font-serif text-gray-900">
             {t.use_cases_title}
           </h2>
@@ -43,9 +43,9 @@ const UseCases: React.FC = () => {
               key={idx}
               className="
                 group
-                bg-warm-white
+                bg-white
                 rounded-2xl
-                p-8
+                px-6 py-8
                 text-center
                 shadow-sm
                 transition-all duration-300
@@ -53,11 +53,25 @@ const UseCases: React.FC = () => {
                 hover:-translate-y-2
               "
             >
-              <div className="text-3xl mb-4 transition-transform duration-300 group-hover:scale-110">
-                {item.icon}
+              {/* ICONO */}
+              <div className="flex justify-center mb-5">
+                <div
+                  className={`
+                    w-14 h-14
+                    rounded-full
+                    flex items-center justify-center
+                    text-2xl
+                    ${item.bg}
+                    transition-transform duration-300
+                    group-hover:scale-110
+                  `}
+                >
+                  {item.icon}
+                </div>
               </div>
 
-              <p className="font-serif text-sm text-gray-900">
+              {/* TEXTO */}
+              <p className="font-serif text-sm text-gray-900 leading-snug">
                 {item.label}
               </p>
             </div>

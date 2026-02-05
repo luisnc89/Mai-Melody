@@ -5,10 +5,10 @@ import {
   Language,
   PackType,
   SongOrder,
-  ImageStyle,
   MusicalStyle,
   VoiceType,
 } from '../types';
+
 import { translations } from '../translations';
 import { saveOrder } from '../services/storage';
 import PayPalButton from './PayPalButton';
@@ -20,30 +20,28 @@ import { getPackFromSlug } from '../routes/packSlugs';
 ========================= */
 const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
-interface PhotoWithStyle {
-  image: string;
-  style?: ImageStyle;
-}
-
 /* =========================
-   🎵 Estilos musicales (DEBEN coincidir con MusicalStyle)
+   🎵 Estilos musicales (valores técnicos)
 ========================= */
-const MUSICAL_STYLES: MusicalStyle[] = [
-  'Pop',
-  'Rock',
-  'Acustico',
-  'Epico',
-  'Reggaeton',
-  'Rap',
-  'Electrónica',
-  'Infantil',
+const MUSICAL_STYLES: { value: MusicalStyle; labelKey: string }[] = [
+  { value: 'pop', labelKey: 'form_music_pop' },
+  { value: 'rock', labelKey: 'form_music_rock' },
+  { value: 'acoustic', labelKey: 'form_music_acoustic' },
+  { value: 'epic', labelKey: 'form_music_epic' },
+  { value: 'reggaeton', labelKey: 'form_music_reggaeton' },
+  { value: 'rap', labelKey: 'form_music_rap' },
+  { value: 'electronic', labelKey: 'form_music_electronic' },
+  { value: 'kids', labelKey: 'form_music_kids' },
 ];
 
-const VOICES: VoiceType[] = [
-  'Masculina',
-  'Femenina',
-  'Infantil',
-  'Indiferente',
+/* =========================
+   🎤 Voces (valores técnicos)
+========================= */
+const VOICES: { value: VoiceType; labelKey: string }[] = [
+  { value: 'male', labelKey: 'form_voice_male' },
+  { value: 'female', labelKey: 'form_voice_female' },
+  { value: 'kids', labelKey: 'form_voice_kids' },
+  { value: 'indifferent', labelKey: 'form_voice_indifferent' },
 ];
 
 const CreationForm: React.FC = () => {
@@ -67,22 +65,32 @@ const CreationForm: React.FC = () => {
   /* =========================
      🧾 Estado del formulario
   ========================= */
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    songTitle: string;
+    sender: string;
+    recipient: string;
+    memories: string;
+    occasion: string;
+    musicalStyle: MusicalStyle;
+    voice: VoiceType;
+    deliveryEmail: string;
+  }>({
     songTitle: '',
     sender: '',
     recipient: '',
     memories: '',
-    occasion: 'Birthday',
-    musicalStyle: 'Pop' as MusicalStyle,
-    voice: 'Indiferente' as VoiceType,
+    occasion: 'birthday',
+    musicalStyle: 'pop',
+    voice: 'indifferent',
     deliveryEmail: '',
   });
 
-  const [photos, setPhotos] = useState<PhotoWithStyle[]>([]);
   const [showPayment, setShowPayment] = useState(false);
-  const [showBankTransfer, setShowBankTransfer] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
 
+  /* =========================
+     💰 Precio por pack
+  ========================= */
   const getPriceByPack = () => {
     switch (selectedPack) {
       case 'basico':
@@ -96,41 +104,27 @@ const CreationForm: React.FC = () => {
     }
   };
 
+  /* =========================
+     🔧 HANDLER CORRECTO (CLAVE)
+  ========================= */
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
 
-  /* =========================
-     📸 SUBIDA DE FOTOS (FIX TS)
-  ========================= */
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
+    setFormData(prev => {
+      if (name === 'musicalStyle') {
+        return { ...prev, musicalStyle: value as MusicalStyle };
+      }
 
-    const files = Array.from(e.target.files) as File[];
-    const limitedFiles = files.slice(0, 15);
+      if (name === 'voice') {
+        return { ...prev, voice: value as VoiceType };
+      }
 
-    const images = await Promise.all(
-      limitedFiles.map(
-        file =>
-          new Promise<PhotoWithStyle>((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = () => {
-              resolve({ image: reader.result as string });
-            };
-
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(file);
-          })
-      )
-    );
-
-    setPhotos(prev => [...prev, ...images].slice(0, 15));
+      return { ...prev, [name]: value };
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -139,7 +133,7 @@ const CreationForm: React.FC = () => {
   };
 
   /* =========================
-     ✅ CREAR PEDIDO (YA CORRECTO)
+     📦 Crear pedido
   ========================= */
   const createOrder = (status: SongOrder['status']) => {
     const order: SongOrder = {
@@ -159,8 +153,7 @@ const CreationForm: React.FC = () => {
       musicalStyle: formData.musicalStyle,
       voice: formData.voice,
 
-      photos: photos.map(p => p.image),
-
+      photos: [],
       status,
       createdAt: new Date().toISOString(),
     };
@@ -181,8 +174,7 @@ const CreationForm: React.FC = () => {
 
   return (
     <section className="py-20 px-4">
-      <div className="max-w-4xl mx-auto bg-white rounded-[3rem] shadow-2xl border border-gray-100 p-8 md:p-12 space-y-10">
-
+      <div className="max-w-4xl mx-auto bg-white rounded-[3rem] shadow-2xl p-8 md:p-12 space-y-10">
         <button
           type="button"
           onClick={() =>
@@ -231,19 +223,21 @@ const CreationForm: React.FC = () => {
             required
           />
 
+          {/* 🎵 Estilo musical */}
           <select
             name="musicalStyle"
             value={formData.musicalStyle}
             onChange={handleInputChange}
             className="w-full bg-gray-50 rounded-2xl p-4"
           >
-            {MUSICAL_STYLES.map(style => (
-              <option key={style} value={style}>
-                {style}
+            {MUSICAL_STYLES.map(s => (
+              <option key={s.value} value={s.value}>
+                {t[s.labelKey]}
               </option>
             ))}
           </select>
 
+          {/* 🎤 Voz */}
           <select
             name="voice"
             value={formData.voice}
@@ -251,20 +245,11 @@ const CreationForm: React.FC = () => {
             className="w-full bg-gray-50 rounded-2xl p-4"
           >
             {VOICES.map(v => (
-              <option key={v} value={v}>
-                {v}
+              <option key={v.value} value={v.value}>
+                {t[v.labelKey]}
               </option>
             ))}
           </select>
-
-          {(selectedPack === 'emocion' || selectedPack === 'artistico') && (
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-          )}
 
           <input
             type="email"
@@ -288,39 +273,14 @@ const CreationForm: React.FC = () => {
 
         {showPayment && (
           <div className="pt-12 space-y-8 text-center">
-            <p className="font-bold text-lg">Total: {getPriceByPack()} €</p>
+            <p className="font-bold text-lg">
+              Total: {getPriceByPack()} €
+            </p>
 
             <PayPalButton
               amount={getPriceByPack()}
               onSuccess={() => createOrder('pendiente')}
             />
-
-            <div className="max-w-xl mx-auto">
-              <button
-                type="button"
-                onClick={() => setShowBankTransfer(prev => !prev)}
-                className="w-full flex justify-between px-6 py-4 rounded-full border font-semibold"
-              >
-                🏦 Pagar por transferencia bancaria
-                <span>{showBankTransfer ? '−' : '+'}</span>
-              </button>
-
-              {showBankTransfer && (
-                <div className="mt-6 p-6 rounded-3xl bg-gray-50 border space-y-4 text-sm">
-                  <p><strong>Titular:</strong> MaiMelody</p>
-                  <p><strong>IBAN:</strong> ES95 0182 1828 0702 0151 9096</p>
-                  <p><strong>Concepto:</strong> Pedido + tu email</p>
-
-                  <button
-                    type="button"
-                    onClick={() => createOrder('pendiente')}
-                    className="w-full mt-6 bg-gray-900 text-white py-4 rounded-full font-bold"
-                  >
-                    He realizado la transferencia
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         )}
       </div>

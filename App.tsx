@@ -7,7 +7,7 @@ import Pricing from './components/Pricing';
 import CreationForm from './components/CreationForm';
 import HowItWorks from './components/HowItWorks';
 import UseCases from './components/UseCases';
-import Examples from './components/Examples';
+import MusicStyles from './components/MusicStyles';
 import Testimonials from './components/Testimonials';
 import SEOBlock from './components/SEOBlock';
 import ChatBot from './components/ChatBot';
@@ -27,7 +27,7 @@ import { ROUTE_SLUGS } from './routes/slugs';
 const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
 /* =========================
-   🎨 Decoraciones (SE MANTIENEN)
+   🎨 Decoraciones
 ========================= */
 const ButterflyDecoration = () => (
   <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
@@ -46,30 +46,28 @@ const NoteDecoration = () => (
    🧱 Layout con idioma
 ========================= */
 const LanguageLayout: React.FC = () => {
-  const { lang } = useParams<{ lang: Language }>();
+  const { lang } = useParams<{ lang: string }>();
 
+  // normalizamos idioma
   const language: Language = SUPPORTED_LANGUAGES.includes(lang as Language)
     ? (lang as Language)
     : 'es';
 
-  // Si el idioma no es válido → redirigir
-  if (!lang || !SUPPORTED_LANGUAGES.includes(lang)) {
+  // redirección si no es válido
+  if (!lang || !SUPPORTED_LANGUAGES.includes(lang as Language)) {
     return <Navigate to="/es" replace />;
   }
 
   return (
     <div className="min-h-screen relative bg-warm-white">
-      {/* Decoraciones originales */}
       <ButterflyDecoration />
       <NoteDecoration />
 
-      {/* Header (no se toca aún) */}
       <Header isAuthenticated={false} />
 
       <main className="relative z-10 pt-20">
         <Routes>
-
-          {/* HOME (IDÉNTICA A LA TUYA) */}
+          {/* HOME */}
           <Route
             index
             element={
@@ -77,7 +75,7 @@ const LanguageLayout: React.FC = () => {
                 <Hero />
                 <UseCases />
                 <ArtisticVideoCreator />
-                <Examples />
+                <MusicStyles />
                 <HowItWorks />
                 <Testimonials />
                 <SEOBlock />
@@ -114,21 +112,13 @@ const LanguageLayout: React.FC = () => {
             element={<BlogPostDetail />}
           />
 
-          {/* =========================
-             🔐 ADMIN (CAMBIO CLAVE)
-             Antes: /admin → Login
-             Ahora:
-             /admin/login → Login
-             /admin → Admin protegido
-          ========================= */}
-
           {/* LOGIN ADMIN */}
           <Route
             path={`${ROUTE_SLUGS.admin[language]}/login`}
             element={<Login />}
           />
 
-          {/* PANEL ADMIN (PROTEGIDO) */}
+          {/* ADMIN PROTEGIDO */}
           <Route
             path={ROUTE_SLUGS.admin[language]}
             element={
@@ -138,12 +128,11 @@ const LanguageLayout: React.FC = () => {
             }
           />
 
-          {/* FALLBACK */}
+          {/* FALLBACK IDIOMA */}
           <Route
             path="*"
             element={<Navigate to={`/${language}`} replace />}
           />
-
         </Routes>
       </main>
 
@@ -158,13 +147,13 @@ const LanguageLayout: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Routes>
-      {/* / → /es */}
+      {/* raíz → español */}
       <Route path="/" element={<Navigate to="/es" replace />} />
 
-      {/* Idiomas */}
+      {/* layout por idioma */}
       <Route path="/:lang/*" element={<LanguageLayout />} />
 
-      {/* Fallback */}
+      {/* fallback global */}
       <Route path="*" element={<Navigate to="/es" replace />} />
     </Routes>
   );

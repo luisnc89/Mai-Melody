@@ -4,14 +4,14 @@ import { Language } from '../types';
 import { translations } from '../translations';
 import { ROUTE_SLUGS, PACK_SLUGS } from '../routes/slugs';
 
+const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
+
 const ArtisticVideoCreator: React.FC = () => {
   const navigate = useNavigate();
   const { lang } = useParams<{ lang: Language }>();
 
   const language: Language =
-    lang === 'es' || lang === 'en' || lang === 'ca' || lang === 'fr' || lang === 'it'
-      ? lang
-      : 'es';
+    lang && SUPPORTED_LANGUAGES.includes(lang) ? lang : 'es';
 
   const t = translations[language];
 
@@ -45,10 +45,14 @@ const ArtisticVideoCreator: React.FC = () => {
   };
 
   return (
-    <section id="video-ia" className="py-24 px-4 bg-white scroll-mt-24">
+    <section
+      id="video-ia"
+      className="py-20 px-4 bg-white"
+    >
       <div className="max-w-7xl mx-auto">
 
-        <div className="text-center mb-16 space-y-4">
+        {/* TÍTULO */}
+        <div className="text-center mb-14 space-y-4">
           <h2 className="text-4xl lg:text-6xl font-serif text-gray-900">
             {t.artistic_title}
           </h2>
@@ -61,19 +65,19 @@ const ArtisticVideoCreator: React.FC = () => {
 
           {/* SELECTOR */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-warm-white p-8 rounded-[3rem] border space-y-6">
+            <div className="bg-white/70 backdrop-blur-sm p-8 rounded-[3rem] shadow-sm space-y-6">
 
-              <h3 className="text-2xl font-serif font-bold">
+              <h3 className="text-2xl font-serif font-bold text-gray-900">
                 {t.artistic_compare_title}
               </h3>
 
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => setActiveStyle('original')}
-                  className={`p-5 rounded-2xl border-2 text-left ${
+                  className={`p-5 rounded-2xl text-left transition-all ${
                     activeStyle === 'original'
-                      ? 'border-gray-900 bg-gray-900 text-white'
-                      : 'border-gray-100 bg-white'
+                      ? 'bg-gray-900 text-white shadow'
+                      : 'bg-white hover:shadow'
                   }`}
                 >
                   <span className="block text-xs uppercase opacity-60">
@@ -88,10 +92,10 @@ const ArtisticVideoCreator: React.FC = () => {
                   <button
                     key={style.id}
                     onClick={() => setActiveStyle(style.id)}
-                    className={`p-5 rounded-2xl border-2 text-left ${
+                    className={`p-5 rounded-2xl text-left transition-all ${
                       activeStyle === style.id
-                        ? 'border-gold bg-gold/10'
-                        : 'border-gray-100 bg-white'
+                        ? 'bg-violet-100 shadow'
+                        : 'bg-white hover:shadow'
                     }`}
                   >
                     <span className="text-xl">{style.icon}</span>
@@ -105,9 +109,16 @@ const ArtisticVideoCreator: React.FC = () => {
               {/* CTA */}
               <button
                 onClick={goToArtisticPack}
-                className="relative group w-full overflow-hidden bg-gray-900 text-white py-5 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-xl"
+                className="
+                  relative group w-full overflow-hidden
+                  bg-gray-900 text-white
+                  py-5 rounded-full
+                  text-lg font-semibold
+                  transition-all transform hover:scale-105
+                  shadow-xl
+                "
               >
-                <div className="absolute inset-0 multi-glow opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute inset-0 multi-glow opacity-0 group-hover:opacity-100 transition-opacity" />
                 <span className="relative z-10">
                   {t.artistic_cta}
                 </span>
@@ -118,7 +129,7 @@ const ArtisticVideoCreator: React.FC = () => {
 
           {/* PREVIEW */}
           <div className="lg:col-span-7">
-            <div className="bg-gray-50 rounded-[4rem] p-8 flex justify-center">
+            <div className="bg-white/60 backdrop-blur-sm rounded-[4rem] p-8 flex justify-center">
               <div className="relative max-w-[500px] w-full">
                 <img
                   key={activeStyle}

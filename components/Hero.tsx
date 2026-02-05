@@ -30,26 +30,26 @@ const Hero: React.FC = () => {
 
         {/* TEXTO */}
         <div className="space-y-8">
-          <div className="inline-flex items-center px-4 py-1.5 bg-violet-100 text-violet-700 rounded-full text-xs font-bold uppercase tracking-widest">
-            🦋 MaiMelody Magic
-          </div>
 
+          {/* TITULAR */}
           <h1 className="text-5xl lg:text-7xl font-serif leading-tight text-gray-900">
             {t.hero_h1}
           </h1>
 
+          {/* SUBTÍTULO */}
           <p className="text-xl text-violet-600 font-medium">
             ♪ {t.hero_sub}
           </p>
 
+          {/* DESCRIPCIÓN */}
           <p className="text-lg text-gray-600 max-w-lg">
             {t.hero_desc}
           </p>
 
           {/* BOTONES */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-5 pt-2">
 
-            {/* CTA PRINCIPAL — MISMO ESTILO QUE ArtisticVideoCreator */}
+            {/* CTA PRINCIPAL */}
             <button
               type="button"
               onClick={() =>
@@ -101,7 +101,7 @@ const Hero: React.FC = () => {
           </div>
 
           {/* BENEFICIOS */}
-          <ul className="grid grid-cols-2 gap-3 text-sm text-gray-600 pt-4">
+          <ul className="grid grid-cols-2 gap-3 text-sm text-gray-600 pt-6">
             <li>✔ {t.benefit_1}</li>
             <li>✔ {t.benefit_2}</li>
             <li>✔ {t.benefit_3}</li>
@@ -112,7 +112,7 @@ const Hero: React.FC = () => {
         {/* IMÁGENES */}
         <div className="grid grid-cols-2 gap-6 items-stretch">
 
-          {/* Izquierda: pareja + televisión */}
+          {/* Izquierda */}
           <div className="flex flex-col gap-6">
             <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-xl">
               <img
@@ -131,7 +131,7 @@ const Hero: React.FC = () => {
             </div>
           </div>
 
-          {/* Derecha: fiesta centrada */}
+          {/* Derecha */}
           <div className="flex items-center">
             <div className="aspect-[3/5] w-full rounded-3xl overflow-hidden shadow-xl">
               <img

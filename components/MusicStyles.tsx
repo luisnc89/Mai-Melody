@@ -42,7 +42,7 @@ const formatTime = (t: number) => {
 };
 
 /* =========================
-   🎧 Player
+   🎧 Player (FIXED)
 ========================= */
 const CardPlayer = ({
   audio,
@@ -62,14 +62,28 @@ const CardPlayer = ({
     if (!audio) return;
 
     const onTime = () => setCurrent(audio.currentTime);
-    const onLoaded = () => setDuration(audio.duration || 0);
+
+    const onDuration = () => {
+      if (!isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
 
     audio.addEventListener('timeupdate', onTime);
-    audio.addEventListener('loadedmetadata', onLoaded);
+    audio.addEventListener('loadedmetadata', onDuration);
+    audio.addEventListener('durationchange', onDuration);
+    audio.addEventListener('play', onDuration);
+
+    // Fallback inmediato
+    if (audio.readyState >= 1 && !isNaN(audio.duration)) {
+      setDuration(audio.duration);
+    }
 
     return () => {
       audio.removeEventListener('timeupdate', onTime);
-      audio.removeEventListener('loadedmetadata', onLoaded);
+      audio.removeEventListener('loadedmetadata', onDuration);
+      audio.removeEventListener('durationchange', onDuration);
+      audio.removeEventListener('play', onDuration);
     };
   }, [audio]);
 
@@ -78,7 +92,7 @@ const CardPlayer = ({
       <div className="bg-black/70 backdrop-blur-md rounded-full px-3 py-2 flex items-center gap-2">
         <button
           onClick={onToggle}
-          className="w-10 h-10 rounded-full bg-white flex items-center justify-center"
+          className="w-10 h-10 rounded-full bg-white flex items-center justify-center transition-all"
           style={{ boxShadow: isActive ? `0 0 16px ${color}` : undefined }}
         >
           {isActive ? '❚❚' : '▶'}
@@ -91,7 +105,7 @@ const CardPlayer = ({
         <input
           type="range"
           min={0}
-          max={duration}
+          max={duration > 0 ? duration : 1}
           step="0.01"
           value={current}
           onChange={e => {
@@ -147,7 +161,6 @@ const MusicStyles: React.FC = () => {
     }
   };
 
-  /* ✅ AQUÍ ESTÁ EL FIX IMPORTANTE */
   const goToBasicPack = () => {
     navigate(
       `/${language}/${ROUTE_SLUGS.create[language]}/${PACK_SLUGS.basico[language]}`

@@ -48,12 +48,10 @@ const NoteDecoration = () => (
 const LanguageLayout: React.FC = () => {
   const { lang } = useParams<{ lang: string }>();
 
-  // normalizamos idioma
   const language: Language = SUPPORTED_LANGUAGES.includes(lang as Language)
     ? (lang as Language)
     : 'es';
 
-  // redirección si no es válido
   if (!lang || !SUPPORTED_LANGUAGES.includes(lang as Language)) {
     return <Navigate to="/es" replace />;
   }
@@ -67,7 +65,8 @@ const LanguageLayout: React.FC = () => {
 
       <main className="relative z-10 pt-20">
         <Routes>
-          {/* HOME */}
+
+          {/* ================= HOME ================= */}
           <Route
             index
             element={
@@ -77,31 +76,34 @@ const LanguageLayout: React.FC = () => {
                 <ArtisticVideoCreator />
                 <MusicStyles />
                 <HowItWorks />
-                <Testimonials />
+
+                {/* ✅ SOLO LECTURA DE TESTIMONIOS */}
+                <Testimonials lang={language} />
+
                 <SEOBlock />
               </>
             }
           />
 
-          {/* PACKS */}
+          {/* ================= PACKS ================= */}
           <Route
             path={ROUTE_SLUGS.packs[language]}
             element={<Pricing />}
           />
 
-          {/* CREAR */}
+          {/* ================= CREAR ================= */}
           <Route
             path={`${ROUTE_SLUGS.create[language]}/:pack`}
             element={<CreationForm />}
           />
 
-          {/* CÓMO FUNCIONA */}
+          {/* ================= CÓMO FUNCIONA ================= */}
           <Route
             path={ROUTE_SLUGS.how[language]}
             element={<HowItWorks />}
           />
 
-          {/* BLOG */}
+          {/* ================= BLOG ================= */}
           <Route
             path={ROUTE_SLUGS.blog[language]}
             element={<Blog />}
@@ -112,13 +114,13 @@ const LanguageLayout: React.FC = () => {
             element={<BlogPostDetail />}
           />
 
-          {/* LOGIN ADMIN */}
+          {/* ================= LOGIN ADMIN ================= */}
           <Route
             path={`${ROUTE_SLUGS.admin[language]}/login`}
             element={<Login />}
           />
 
-          {/* ADMIN PROTEGIDO */}
+          {/* ================= ADMIN (SOLO AQUÍ) ================= */}
           <Route
             path={ROUTE_SLUGS.admin[language]}
             element={
@@ -128,7 +130,7 @@ const LanguageLayout: React.FC = () => {
             }
           />
 
-          {/* FALLBACK IDIOMA */}
+          {/* ================= FALLBACK ================= */}
           <Route
             path="*"
             element={<Navigate to={`/${language}`} replace />}
@@ -136,6 +138,7 @@ const LanguageLayout: React.FC = () => {
         </Routes>
       </main>
 
+      {/* Chat visible solo en público */}
       <ChatBot />
     </div>
   );
@@ -147,13 +150,8 @@ const LanguageLayout: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Routes>
-      {/* raíz → español */}
       <Route path="/" element={<Navigate to="/es" replace />} />
-
-      {/* layout por idioma */}
       <Route path="/:lang/*" element={<LanguageLayout />} />
-
-      {/* fallback global */}
       <Route path="*" element={<Navigate to="/es" replace />} />
     </Routes>
   );

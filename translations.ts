@@ -97,7 +97,11 @@ export const translations = {
   testimonial_2: 'El vídeo ilustrado es una maravilla. Las fotos parecen cuadros en movimiento.',
   testimonial_3: 'Increíble que en tan poco tiempo fuera tan personal y emotivo.',
 
-  seo_block: 'MaiMelody es un servicio de canciones personalizadas pensado para regalar emociones en momentos especiales.',
+  seo_block: {
+  title: 'Canciones personalizadas para regalar emociones',
+  description:
+    'MaiMelody es un servicio de canciones personalizadas pensado para regalar emociones auténticas en momentos especiales.',
+},
 
   /* 🤖 CHAT */
   chat_initial: '¡Hola! Soy Mai. ✨\n\n¿En qué puedo ayudarte a crear tu canción perfecta?',
@@ -277,7 +281,12 @@ en: {
   testimonial_2: 'The illustrated video is amazing. The photos look like living paintings.',
   testimonial_3: 'Incredible how personal and emotional it was in such a short time.',
 
-  seo_block: 'MaiMelody is a personalized song service designed to gift emotions on special occasions.',
+  seo_block: {
+  title: 'Personalized songs to gift emotions',
+  description:
+    'MaiMelody is a personalized song service designed to gift real emotions on special occasions.',
+},
+
 
   /* 🤖 CHAT */
   chat_initial: 'Hi! I’m Mai. ✨\n\nHow can I help you create your perfect song?',
@@ -457,7 +466,12 @@ ca: {
   testimonial_2: 'El vídeo il·lustrat és una meravella. Les fotos semblen quadres en moviment.',
   testimonial_3: 'Sorprèn com pot ser tan personal i emotiu en tan poc temps.',
 
-  seo_block: 'MaiMelody és un servei de cançons personalitzades pensat per regalar emocions en moments especials.',
+  seo_block: {
+  title: 'Cançons personalitzades per regalar emocions',
+  description:
+    'MaiMelody és un servei de cançons personalitzades pensat per regalar emocions en moments especials.',
+},
+
 
   /* 🤖 XAT */
   chat_initial: 'Hola! Soc la Mai. ✨\n\nEn què et puc ajudar a crear la teva cançó perfecta?',
@@ -637,7 +651,12 @@ fr: {
   testimonial_2: 'La vidéo illustrée est magnifique. Les photos prennent vie.',
   testimonial_3: 'Incroyable de recevoir quelque chose d’aussi personnel si rapidement.',
 
-  seo_block: 'MaiMelody est un service de chansons personnalisées conçu pour offrir des émotions lors de moments uniques.',
+  seo_block: {
+  title: 'Chansons personnalisées pour offrir des émotions',
+  description:
+    'MaiMelody est un service de chansons personnalisées conçu pour offrir des émotions lors de moments uniques.',
+},
+
 
   /* 🤖 CHAT */
   chat_initial: 'Bonjour ! Je suis Mai. ✨\n\nComment puis-je vous aider à créer votre chanson parfaite ?',
@@ -816,6 +835,13 @@ it: {
   testimonial_1: 'Abbiamo pianto ascoltandola. Un regalo indimenticabile.',
   testimonial_2: 'Il video illustrato è stupendo. Le foto sembrano vivere.',
   testimonial_3: 'Incredibile quanto sia personale ed emozionante in così poco tempo.',
+
+  seo_block: {
+  title: 'Canzoni personalizzate per regalare emozioni',
+  description:
+    'MaiMelody è un servizio di canzoni personalizzate pensato per regalare emozioni nei momenti speciali.',
+},
+
 
   /* 🤖 CHAT */
   chat_initial: 'Ciao! Sono Mai. ✨\n\nCome posso aiutarti a creare la tua canzone perfetta?',

@@ -1,73 +1,137 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../services/supabase';
 import { Language } from '../types';
-import { translations } from '../translations';
 
-/* =========================
-   🌍 Idiomas soportados
-========================= */
-const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
+interface Testimonial {
+  id: string;
+  name: string;
+  message: string;
+  rating: number;
+  language: Language;
+  song_url: string;
+  photo: string | null;
+  pack: string | null;
+  created_at: string;
+}
 
-const Testimonials: React.FC = () => {
-  const { lang } = useParams<{ lang: Language }>();
+const ITEMS_DESKTOP = 6;
+const ITEMS_MOBILE = 4;
 
-  const language: Language = SUPPORTED_LANGUAGES.includes(lang as Language)
-    ? (lang as Language)
-    : 'es';
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 
-  const t = translations[language];
+const Testimonials: React.FC<{ lang: Language }> = ({ lang }) => {
+  const [items, setItems] = useState<Testimonial[]>([]);
+  const [index, setIndex] = useState(0);
+  const [perPage, setPerPage] = useState(ITEMS_DESKTOP);
 
-  const feedback = [
-    { stars: 5, text: t.testimonial_1, author: 'Marta, Barcelona' },
-    { stars: 5, text: t.testimonial_2, author: 'Jordi, Madrid' },
-    { stars: 5, text: t.testimonial_3, author: 'Elena, Valencia' },
-  ];
+  useEffect(() => {
+    supabase
+      .from('testimonials')
+      .select('*')
+      .eq('visible', true)
+      .eq('language', lang)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setItems(data || []));
+  }, [lang]);
+
+  useEffect(() => {
+    const update = () => {
+      setPerPage(window.innerWidth < 768 ? ITEMS_MOBILE : ITEMS_DESKTOP);
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  if (!items.length) return null;
+
+  const maxIndex = Math.max(0, items.length - perPage);
+  const visible = items.slice(index, index + perPage);
 
   return (
-    <section className="py-20 px-4 bg-white">
-      <div className="max-w-7xl mx-auto">
+    <section className="bg-white py-24">
+      <div className="max-w-7xl mx-auto px-4 space-y-12">
 
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl lg:text-5xl font-serif text-gray-900">
-            {t.testimonials_title}
-          </h2>
+        <h2 className="text-4xl font-serif text-center">
+          Lo que dicen nuestros clientes
+        </h2>
+
+        {/* CONTROLS */}
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setIndex(i => Math.max(0, i - perPage))}
+            disabled={index === 0}
+            className="px-3 py-2 rounded-full border disabled:opacity-30"
+          >
+            ←
+          </button>
+          <button
+            onClick={() => setIndex(i => Math.min(maxIndex, i + perPage))}
+            disabled={index >= maxIndex}
+            className="px-3 py-2 rounded-full border disabled:opacity-30"
+          >
+            →
+          </button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {feedback.map((item, i) => (
+        {/* GRID */}
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {visible.map(t => (
             <div
-              key={i}
-              className="bg-warm-white p-10 rounded-[2.5rem] shadow-sm flex flex-col justify-between border border-gray-50"
+              key={t.id}
+              className="bg-gray-50 p-6 rounded-3xl space-y-4"
             >
-              <div className="space-y-4">
-                <div className="flex space-x-1 text-gold">
-                  {Array.from({ length: item.stars }).map((_, s) => (
-                    <svg
-                      key={s}
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
+              <p className="italic text-sm leading-relaxed">
+                “{t.message}”
+              </p>
+
+              {/* USER */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {t.photo ? (
+                    <img
+                      src={t.photo}
+                      alt={t.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center font-bold">
+                      {t.name.charAt(0)}
+                    </div>
+                  )}
+
+                  <div className="leading-tight">
+                    <strong className="block text-sm">
+                      {t.name}
+                    </strong>
+
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      {t.pack && (
+                        <span className="px-2 py-0.5 rounded-full bg-gray-200">
+                          {t.pack}
+                        </span>
+                      )}
+                      <span>{formatDate(t.created_at)}</span>
+                    </div>
+                  </div>
                 </div>
 
-                <p className="text-lg italic text-gray-700 leading-relaxed">
-                  “{item.text}”
-                </p>
+                <span className="text-sm">⭐ {t.rating}</span>
               </div>
 
-              <div className="mt-6 flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full" />
-                <span className="font-bold text-gray-900 text-sm">
-                  — {item.author}
-                </span>
-              </div>
+              <audio
+                controls
+                src={t.song_url}
+                className="w-full h-8"
+              />
             </div>
           ))}
         </div>
-
       </div>
     </section>
   );

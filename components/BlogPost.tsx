@@ -1,44 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabase';
-import { Language } from '../types';
-import { translations } from '../translations';
+import React, { useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { supabase } from '../services/supabase'
+import { Language } from '../types'
+import { translations } from '../translations'
 
-const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
+const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it']
 
 const BlogPost: React.FC = () => {
-  const { lang, slug } = useParams<{ lang: Language; slug: string }>();
-  const navigate = useNavigate();
+  const { lang, slug } = useParams<{ lang: Language; slug: string }>()
+  const navigate = useNavigate()
 
   const language: Language =
-    lang && SUPPORTED_LANGUAGES.includes(lang) ? lang : 'es';
+    lang && SUPPORTED_LANGUAGES.includes(lang) ? lang : 'es'
 
-  const t = translations[language];
+  const t = translations[language]
 
-  const [post, setPost] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [post, setPost] = useState<any | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const loadPost = async () => {
+      setLoading(true)
+
       const { data } = await supabase
         .from('blog_posts')
         .select('*')
-        .eq('slug', slug)
-        .single();
+        .eq(`slugs->>${language}`, slug)
+        .single()
 
-      setPost(data);
-      setLoading(false);
-    };
+      setPost(data)
+      setLoading(false)
+    }
 
-    loadPost();
-  }, [slug]);
+    loadPost()
+  }, [slug, language])
 
   if (loading) {
     return (
       <p className="text-center py-32 text-gray-400 italic">
         Cargando artículo…
       </p>
-    );
+    )
   }
 
   if (!post) {
@@ -46,8 +48,11 @@ const BlogPost: React.FC = () => {
       <p className="text-center py-32 text-gray-400 italic">
         Artículo no encontrado
       </p>
-    );
+    )
   }
+
+  const title = post.title?.[language] || post.title?.es
+  const content = post.content?.[language] || post.content?.es
 
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen bg-warm-white">
@@ -66,7 +71,7 @@ const BlogPost: React.FC = () => {
           </p>
 
           <h1 className="text-5xl font-serif">
-            {post.title?.[language] || post.title?.es}
+            {title}
           </h1>
         </div>
 
@@ -74,18 +79,18 @@ const BlogPost: React.FC = () => {
           <div className="rounded-3xl overflow-hidden shadow-xl">
             <img
               src={post.image}
-              alt={post.title?.[language]}
+              alt={title}
               className="w-full object-cover"
             />
           </div>
         )}
 
         <div className="prose prose-lg max-w-none whitespace-pre-wrap">
-          {post.content?.[language] || post.content?.es}
+          {content}
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default BlogPost;
+export default BlogPost

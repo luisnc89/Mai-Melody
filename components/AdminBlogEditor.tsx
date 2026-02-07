@@ -1,72 +1,89 @@
-import React, { useState } from 'react';
-import { supabase } from '../services/supabase';
-import { Language } from '../types';
+import React, { useState } from 'react'
+import { supabase } from '../services/supabase'
+import { Language } from '../types'
 
-const LANGUAGES: Language[] = ['es', 'en', 'fr', 'it', 'ca'];
+const LANGUAGES: Language[] = ['es', 'en', 'fr', 'it', 'ca']
 
 interface BlogPost {
-  id?: string;
-  slug: string;
-  image: string | null;
-  title: Record<Language, string>;
-  content: Record<Language, string>;
+  id?: string
+  slugs: Record<Language, string>
+  image: string | null
+  title: Record<Language, string>
+  content: Record<Language, string>
 }
 
 const emptyPost: BlogPost = {
-  slug: '',
+  slugs: { es: '', en: '', fr: '', it: '', ca: '' },
   image: null,
   title: { es: '', en: '', fr: '', it: '', ca: '' },
   content: { es: '', en: '', fr: '', it: '', ca: '' },
-};
+}
 
 interface Props {
-  initialPost?: BlogPost;
-  onCancel: () => void;
-  onSave: (post: BlogPost) => void;
+  initialPost?: BlogPost
+  onCancel: () => void
+  onSave: (post: BlogPost) => void
 }
+
+const normalizeSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
 
 const AdminBlogEditor: React.FC<Props> = ({
   initialPost,
   onCancel,
   onSave,
 }) => {
-  const [post, setPost] = useState<BlogPost>(initialPost ?? emptyPost);
-  const [lang, setLang] = useState<Language>('es');
+  const [post, setPost] = useState<BlogPost>(initialPost ?? emptyPost)
+  const [lang, setLang] = useState<Language>('es')
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialPost?.image ?? null
-  );
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  )
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   /* =====================
      UPLOAD IMAGE
   ===================== */
   const uploadImage = async (file: File) => {
-    const ext = file.name.split('.').pop();
-    const path = `covers/${crypto.randomUUID()}.${ext}`;
+    const ext = file.name.split('.').pop()
+    const path = `covers/${crypto.randomUUID()}.${ext}`
 
     const { error } = await supabase.storage
       .from('blog')
-      .upload(path, file, { contentType: file.type });
+      .upload(path, file, { contentType: file.type })
 
-    if (error) throw error;
+    if (error) throw error
 
-    return supabase.storage.from('blog').getPublicUrl(path).data.publicUrl;
-  };
+    return supabase.storage.from('blog').getPublicUrl(path).data.publicUrl
+  }
 
   /* =====================
      SAVE
   ===================== */
   const handleSave = () => {
-    setError(null);
+    setError(null)
 
-    if (!post.slug) {
-      setError('El slug es obligatorio');
-      return;
+    if (!post.slugs.es) {
+      setError('La URL (slug) en español es obligatoria')
+      return
     }
 
-    onSave(post);
-  };
+    if (!post.title.es) {
+      setError('El título en español es obligatorio')
+      return
+    }
+
+    if (!post.content.es) {
+      setError('El contenido en español es obligatorio')
+      return
+    }
+
+    onSave(post)
+  }
 
   return (
     <div className="bg-white p-8 rounded-3xl shadow space-y-6">
@@ -80,14 +97,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         </div>
       )}
 
-      {/* SLUG */}
-      <input
-        value={post.slug}
-        onChange={e => setPost({ ...post, slug: e.target.value })}
-        placeholder="mi-primer-post"
-        className="w-full p-3 border rounded-xl"
-      />
-
       {/* IMAGE */}
       <div className="space-y-2">
         <input
@@ -95,18 +104,18 @@ const AdminBlogEditor: React.FC<Props> = ({
           accept="image/*"
           disabled={uploading}
           onChange={async e => {
-            const file = e.target.files?.[0];
-            if (!file) return;
+            const file = e.target.files?.[0]
+            if (!file) return
 
             try {
-              setUploading(true);
-              const url = await uploadImage(file);
-              setPost(prev => ({ ...prev, image: url }));
-              setImagePreview(url);
+              setUploading(true)
+              const url = await uploadImage(file)
+              setPost(prev => ({ ...prev, image: url }))
+              setImagePreview(url)
             } catch (err: any) {
-              setError(err.message || 'Error subiendo la imagen');
+              setError(err.message || 'Error subiendo la imagen')
             } finally {
-              setUploading(false);
+              setUploading(false)
             }
           }}
         />
@@ -136,6 +145,22 @@ const AdminBlogEditor: React.FC<Props> = ({
           </button>
         ))}
       </div>
+
+      {/* SLUG PER LANGUAGE */}
+      <input
+        value={post.slugs[lang]}
+        onChange={e =>
+          setPost({
+            ...post,
+            slugs: {
+              ...post.slugs,
+              [lang]: normalizeSlug(e.target.value),
+            },
+          })
+        }
+        placeholder={`URL del post (${lang.toUpperCase()})`}
+        className="w-full p-3 border rounded-xl"
+      />
 
       {/* TITLE */}
       <input
@@ -167,7 +192,7 @@ const AdminBlogEditor: React.FC<Props> = ({
       {/* ACTIONS */}
       <div className="flex gap-4">
         <button
-          type="button"   // 🔴 CLAVE
+          type="button"
           onClick={handleSave}
           disabled={uploading}
           className="bg-gray-900 text-white px-6 py-3 rounded-full"
@@ -184,7 +209,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AdminBlogEditor;
+export default AdminBlogEditor

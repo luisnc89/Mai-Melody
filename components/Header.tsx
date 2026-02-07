@@ -1,71 +1,92 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Language } from '../types';
-import { translations } from '../translations';
-import { ROUTE_SLUGS } from '../routes/slugs';
-import { getPackFromSlug, getPackSlug } from '../routes/packSlugs';
+import React, { useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Language } from '../types'
+import { translations } from '../translations'
+import { ROUTE_SLUGS } from '../routes/slugs'
+import { getPackFromSlug, getPackSlug } from '../routes/packSlugs'
+import { supabase } from '../services/supabase'
 
 interface HeaderProps {
-  isAuthenticated: boolean;
+  isAuthenticated: boolean
 }
 
-const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
+const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it']
 
 const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
-  const { lang } = useParams<{ lang: Language }>();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { lang } = useParams<{ lang: Language }>()
+  const location = useLocation()
+  const navigate = useNavigate()
 
   const language: Language = SUPPORTED_LANGUAGES.includes(lang as Language)
     ? (lang as Language)
-    : 'es';
+    : 'es'
 
-  const t = translations[language];
+  const t = translations[language]
 
-  /* =========================
-     📱 Estado menú móvil
-  ========================= */
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  /* =========================
-     🔗 Helpers de rutas
-  ========================= */
   const withLang = (slug: string) =>
-    slug ? `/${language}/${slug}` : `/${language}`;
+    slug ? `/${language}/${slug}` : `/${language}`
 
   const isActive = (slug: string) => {
-    const path = withLang(slug);
+    const path = withLang(slug)
     return (
       location.pathname === path ||
       location.pathname.startsWith(path + '/')
-    );
-  };
+    )
+  }
 
   /* =========================
-     🌍 Cambio de idioma (FIX)
+     🌍 Cambio de idioma (BLOG FIX)
   ========================= */
-  const handleLanguageChange = (newLang: Language) => {
-    if (newLang === language) return;
+  const handleLanguageChange = async (newLang: Language) => {
+    if (newLang === language) return
 
-    const segments = location.pathname.split('/').filter(Boolean);
-    segments[0] = newLang;
+    const segments = location.pathname.split('/').filter(Boolean)
 
-    // /crear/:pack
-    if (segments[1] === ROUTE_SLUGS.create[language] && segments[2]) {
-      const pack = getPackFromSlug(segments[2], language);
-      if (pack) {
-        segments[1] = ROUTE_SLUGS.create[newLang];
-        segments[2] = getPackSlug(pack, newLang);
+    // Detectar /:lang/blog/:slug
+    const isBlogPost =
+      segments.length === 3 &&
+      segments[1] === ROUTE_SLUGS.blog[language]
+
+    // 📝 BLOG POST → buscar slug correcto
+    if (isBlogPost) {
+      const currentSlug = segments[2]
+
+      const { data } = await supabase
+        .from('blog_posts')
+        .select('slugs')
+        .or(
+          SUPPORTED_LANGUAGES
+            .map(l => `slugs->>${l}.eq.${currentSlug}`)
+            .join(',')
+        )
+        .single()
+
+      if (data?.slugs?.[newLang]) {
+        navigate(
+          `/${newLang}/${ROUTE_SLUGS.blog[newLang]}/${data.slugs[newLang]}`
+        )
+        setMobileOpen(false)
+        return
       }
     }
 
-    setMobileOpen(false);
-    navigate('/' + segments.join('/'));
-  };
+    // 🌐 RESTO DE LA WEB (lo que ya tenías)
+    segments[0] = newLang
 
-  /* =========================
-     📦 Links del menú
-  ========================= */
+    if (segments[1] === ROUTE_SLUGS.create[language] && segments[2]) {
+      const pack = getPackFromSlug(segments[2], language)
+      if (pack) {
+        segments[1] = ROUTE_SLUGS.create[newLang]
+        segments[2] = getPackSlug(pack, newLang)
+      }
+    }
+
+    setMobileOpen(false)
+    navigate('/' + segments.join('/'))
+  }
+
   const navLinks = (
     <>
       <Link
@@ -110,13 +131,12 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
         </Link>
       )}
     </>
-  );
+  )
 
   return (
     <header className="fixed top-0 w-full z-50 bg-warm-white/80 backdrop-blur-md shadow-sm border-b border-violet-100/50">
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
 
-        {/* LOGO */}
         <Link to={`/${language}`} className="flex items-center gap-3">
           <span className="text-3xl">🦋</span>
           <div>
@@ -129,15 +149,11 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
           </div>
         </Link>
 
-        {/* NAV DESKTOP */}
         <nav className="hidden lg:flex gap-8 text-xs font-bold uppercase tracking-widest text-gray-600">
           {navLinks}
         </nav>
 
-        {/* RIGHT */}
         <div className="flex items-center gap-4">
-
-          {/* LANGUAGE SELECT */}
           <select
             value={language}
             onChange={(e) =>
@@ -152,7 +168,6 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
             <option value="it">IT</option>
           </select>
 
-          {/* HAMBURGER */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="lg:hidden text-3xl text-violet-700"
@@ -163,7 +178,6 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
         </div>
       </div>
 
-      {/* MENU MÓVIL */}
       {mobileOpen && (
         <div className="lg:hidden bg-warm-white border-t border-violet-100 shadow-md">
           <nav className="flex flex-col gap-6 px-6 py-8 text-sm font-bold uppercase tracking-widest text-gray-700">
@@ -172,7 +186,7 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
         </div>
       )}
     </header>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

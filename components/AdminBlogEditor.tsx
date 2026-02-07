@@ -38,24 +38,34 @@ const AdminBlogEditor: React.FC<Props> = ({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /* =====================
+     UPLOAD IMAGE
+  ===================== */
   const uploadImage = async (file: File) => {
     const ext = file.name.split('.').pop();
     const path = `covers/${crypto.randomUUID()}.${ext}`;
 
     const { error } = await supabase.storage
       .from('blog')
-      .upload(path, file, {
-        contentType: file.type,
-        upsert: false,
-      });
+      .upload(path, file, { contentType: file.type });
 
     if (error) throw error;
 
-    const { data } = supabase.storage
-      .from('blog')
-      .getPublicUrl(path);
+    return supabase.storage.from('blog').getPublicUrl(path).data.publicUrl;
+  };
 
-    return data.publicUrl;
+  /* =====================
+     SAVE
+  ===================== */
+  const handleSave = () => {
+    setError(null);
+
+    if (!post.slug) {
+      setError('El slug es obligatorio');
+      return;
+    }
+
+    onSave(post);
   };
 
   return (
@@ -71,29 +81,15 @@ const AdminBlogEditor: React.FC<Props> = ({
       )}
 
       {/* SLUG */}
-      <div>
-        <label className="block text-sm font-semibold mb-1">Slug (URL)</label>
-        <input
-          value={post.slug}
-          onChange={e => setPost({ ...post, slug: e.target.value })}
-          placeholder="mi-primer-post"
-          className="w-full p-3 border rounded-xl"
-        />
-      </div>
+      <input
+        value={post.slug}
+        onChange={e => setPost({ ...post, slug: e.target.value })}
+        placeholder="mi-primer-post"
+        className="w-full p-3 border rounded-xl"
+      />
 
       {/* IMAGE */}
       <div className="space-y-2">
-        <label className="block text-sm font-semibold">
-          Imagen de portada
-        </label>
-
-        {imagePreview && (
-          <img
-            src={imagePreview}
-            className="h-40 rounded-xl object-cover"
-          />
-        )}
-
         <input
           type="file"
           accept="image/*"
@@ -114,18 +110,26 @@ const AdminBlogEditor: React.FC<Props> = ({
             }
           }}
         />
+
+        {imagePreview && (
+          <img
+            src={imagePreview}
+            className="h-40 rounded-xl object-cover"
+          />
+        )}
       </div>
 
-      {/* LANGUAGE */}
+      {/* LANGUAGE SELECTOR */}
       <div className="flex gap-2 flex-wrap">
         {LANGUAGES.map(l => (
           <button
             key={l}
+            type="button"
             onClick={() => setLang(l)}
             className={`px-4 py-1 rounded-full text-sm font-bold ${
               lang === l
                 ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-700'
+                : 'bg-gray-200 text-gray-700'
             }`}
           >
             {l.toUpperCase()}
@@ -134,44 +138,37 @@ const AdminBlogEditor: React.FC<Props> = ({
       </div>
 
       {/* TITLE */}
-      <div>
-        <label className="block text-sm font-semibold mb-1">
-          Título ({lang.toUpperCase()})
-        </label>
-        <input
-          value={post.title[lang]}
-          onChange={e =>
-            setPost({
-              ...post,
-              title: { ...post.title, [lang]: e.target.value },
-            })
-          }
-          className="w-full p-3 border rounded-xl"
-        />
-      </div>
+      <input
+        value={post.title[lang]}
+        onChange={e =>
+          setPost({
+            ...post,
+            title: { ...post.title, [lang]: e.target.value },
+          })
+        }
+        placeholder={`Título (${lang.toUpperCase()})`}
+        className="w-full p-3 border rounded-xl"
+      />
 
       {/* CONTENT */}
-      <div>
-        <label className="block text-sm font-semibold mb-1">
-          Contenido ({lang.toUpperCase()})
-        </label>
-        <textarea
-          rows={8}
-          value={post.content[lang]}
-          onChange={e =>
-            setPost({
-              ...post,
-              content: { ...post.content, [lang]: e.target.value },
-            })
-          }
-          className="w-full p-3 border rounded-xl"
-        />
-      </div>
+      <textarea
+        rows={6}
+        value={post.content[lang]}
+        onChange={e =>
+          setPost({
+            ...post,
+            content: { ...post.content, [lang]: e.target.value },
+          })
+        }
+        placeholder={`Contenido (${lang.toUpperCase()})`}
+        className="w-full p-3 border rounded-xl"
+      />
 
       {/* ACTIONS */}
       <div className="flex gap-4">
         <button
-          onClick={() => onSave(post)}
+          type="button"   // 🔴 CLAVE
+          onClick={handleSave}
           disabled={uploading}
           className="bg-gray-900 text-white px-6 py-3 rounded-full"
         >
@@ -179,8 +176,9 @@ const AdminBlogEditor: React.FC<Props> = ({
         </button>
 
         <button
+          type="button"
           onClick={onCancel}
-          className="text-gray-500 underline"
+          className="underline text-gray-500"
         >
           Cancelar
         </button>

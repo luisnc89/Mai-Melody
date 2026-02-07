@@ -26,11 +26,7 @@ interface Props {
 }
 
 const normalizeSlug = (value: string) =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '')
+  value.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
 
 const AdminBlogEditor: React.FC<Props> = ({
   initialPost,
@@ -48,33 +44,14 @@ const AdminBlogEditor: React.FC<Props> = ({
   })
 
   const [lang, setLang] = useState<Language>('es')
-  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const exec = (command: string, value?: string) => {
+  const insertHTML = (html: string) => {
     editorRef.current?.focus()
-    document.execCommand(command, false, value)
-  }
-
-  const uploadImage = async (file: File) => {
-    const ext = file.name.split('.').pop()
-    const path = `covers/${crypto.randomUUID()}.${ext}`
-
-    const { error } = await supabase.storage
-      .from('blog')
-      .upload(path, file)
-
-    if (error) throw error
-
-    return supabase.storage.from('blog').getPublicUrl(path).data.publicUrl
+    document.execCommand('insertHTML', false, html)
   }
 
   const handleSave = () => {
-    if (!post.slugs.es || !post.title.es) {
-      setError('El slug y el título en español son obligatorios')
-      return
-    }
-
     onSave({
       ...post,
       content: {
@@ -91,26 +68,9 @@ const AdminBlogEditor: React.FC<Props> = ({
       </h2>
 
       {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded-xl text-sm">
+        <div className="bg-red-100 text-red-700 p-3 rounded-xl">
           {error}
         </div>
-      )}
-
-      {/* IMAGEN */}
-      <input
-        type="file"
-        onChange={async e => {
-          const file = e.target.files?.[0]
-          if (!file) return
-          setUploading(true)
-          const url = await uploadImage(file)
-          setPost(p => ({ ...p, image: url }))
-          setUploading(false)
-        }}
-      />
-
-      {post.image && (
-        <img src={post.image} className="h-40 rounded-xl" />
       )}
 
       {/* IDIOMAS */}
@@ -148,17 +108,14 @@ const AdminBlogEditor: React.FC<Props> = ({
         onChange={e =>
           setPost(p => ({
             ...p,
-            slugs: {
-              ...p.slugs,
-              [lang]: normalizeSlug(e.target.value),
-            },
+            slugs: { ...p.slugs, [lang]: normalizeSlug(e.target.value) },
           }))
         }
         className="w-full p-3 border rounded-xl"
         placeholder="URL"
       />
 
-      {/* TÍTULO */}
+      {/* TITULO */}
       <input
         value={post.title[lang]}
         onChange={e =>
@@ -171,17 +128,31 @@ const AdminBlogEditor: React.FC<Props> = ({
         placeholder="Título"
       />
 
-      {/* 🧰 TOOLBAR */}
-      <div className="flex gap-2 border rounded-xl p-2 bg-gray-50">
-        <button onClick={() => exec('bold')} className="font-bold">B</button>
-        <button onClick={() => exec('formatBlock', 'h2')}>H2</button>
-        <button onClick={() => exec('formatBlock', 'h3')}>H3</button>
-        <button onClick={() => exec('insertUnorderedList')}>• Lista</button>
-        <button onClick={() => exec('insertOrderedList')}>1. Lista</button>
+      {/* TOOLBAR REAL */}
+      <div className="flex gap-2 border rounded-xl p-2 bg-gray-50 text-sm">
+        <button onClick={() => document.execCommand('bold')}>B</button>
+        <button onClick={() => insertHTML('<h2>Título</h2>')}>H2</button>
+        <button onClick={() => insertHTML('<h3>Subtítulo</h3>')}>H3</button>
+        <button
+          onClick={() =>
+            insertHTML('<ul><li>Elemento de lista</li></ul>')
+          }
+        >
+          • Lista
+        </button>
+        <button
+          onClick={() =>
+            insertHTML('<ol><li>Elemento numerado</li></ol>')
+          }
+        >
+          1. Lista
+        </button>
         <button
           onClick={() => {
             const url = prompt('URL del enlace')
-            if (url) exec('createLink', url)
+            if (url) {
+              insertHTML(`<a href="${url}" target="_blank">${url}</a>`)
+            }
           }}
         >
           🔗
@@ -192,7 +163,7 @@ const AdminBlogEditor: React.FC<Props> = ({
       <div
         ref={editorRef}
         contentEditable
-        className="border p-4 rounded-xl min-h-[240px] focus:outline-none prose max-w-none"
+        className="border p-4 rounded-xl min-h-[260px] focus:outline-none prose max-w-none"
         dangerouslySetInnerHTML={{
           __html: post.content[lang] || '',
         }}

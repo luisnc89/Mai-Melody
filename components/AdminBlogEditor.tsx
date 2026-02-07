@@ -1,82 +1,122 @@
 import React, { useState } from 'react';
+import { supabase } from '../services/supabase';
 import { Language } from '../types';
 
 const LANGUAGES: Language[] = ['es', 'en', 'fr', 'it', 'ca'];
 
-interface BlogPostDraft {
+interface BlogPost {
+  id?: string;
+  slug: string;
+  image: string | null;
   title: Record<Language, string>;
   content: Record<Language, string>;
-  slug: string;
-  image?: string;
-  date: string;
 }
 
-interface Props {
-  initialPost?: BlogPostDraft;
-  onCancel: () => void;
-  onSave: (post: BlogPostDraft) => void;
-}
-
-const emptyPost: BlogPostDraft = {
+const emptyPost: BlogPost = {
   slug: '',
-  image: '',
-  date: new Date().toISOString(),
+  image: null,
   title: { es: '', en: '', fr: '', it: '', ca: '' },
   content: { es: '', en: '', fr: '', it: '', ca: '' },
 };
+
+interface Props {
+  initialPost?: BlogPost;
+  onCancel: () => void;
+  onSave: (post: BlogPost) => void;
+}
 
 const AdminBlogEditor: React.FC<Props> = ({
   initialPost,
   onCancel,
   onSave,
 }) => {
-  const [post, setPost] = useState<BlogPostDraft>(
-    initialPost ?? emptyPost
-  );
+  const [post, setPost] = useState<BlogPost>(initialPost ?? emptyPost);
   const [lang, setLang] = useState<Language>('es');
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialPost?.image ?? null
+  );
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const updateField = (
-    field: 'title' | 'content',
-    value: string
-  ) => {
-    setPost({
-      ...post,
-      [field]: {
-        ...post[field],
-        [lang]: value,
-      },
-    });
+  const uploadImage = async (file: File) => {
+    const ext = file.name.split('.').pop();
+    const path = `covers/${crypto.randomUUID()}.${ext}`;
+
+    const { error } = await supabase.storage
+      .from('blog')
+      .upload(path, file, {
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+      .from('blog')
+      .getPublicUrl(path);
+
+    return data.publicUrl;
   };
 
   return (
-    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow space-y-6">
+    <div className="bg-white p-8 rounded-3xl shadow space-y-6">
       <h2 className="text-2xl font-serif">
         {initialPost ? 'Editar post' : 'Nuevo post'}
       </h2>
 
+      {error && (
+        <div className="bg-red-100 text-red-700 p-3 rounded-xl text-sm">
+          {error}
+        </div>
+      )}
+
       {/* SLUG */}
       <div>
-        <label className="text-sm font-bold text-gray-600">Slug (URL)</label>
+        <label className="block text-sm font-semibold mb-1">Slug (URL)</label>
         <input
           value={post.slug}
-          onChange={(e) => setPost({ ...post, slug: e.target.value })}
+          onChange={e => setPost({ ...post, slug: e.target.value })}
           placeholder="mi-primer-post"
-          className="w-full mt-1 p-3 rounded-xl border"
+          className="w-full p-3 border rounded-xl"
         />
       </div>
 
       {/* IMAGE */}
-      <div>
-        <label className="text-sm font-bold text-gray-600">Imagen (URL)</label>
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold">
+          Imagen de portada
+        </label>
+
+        {imagePreview && (
+          <img
+            src={imagePreview}
+            className="h-40 rounded-xl object-cover"
+          />
+        )}
+
         <input
-          value={post.image}
-          onChange={(e) => setPost({ ...post, image: e.target.value })}
-          placeholder="https://..."
-          className="w-full mt-1 p-3 rounded-xl border"
+          type="file"
+          accept="image/*"
+          disabled={uploading}
+          onChange={async e => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            try {
+              setUploading(true);
+              const url = await uploadImage(file);
+              setPost(prev => ({ ...prev, image: url }));
+              setImagePreview(url);
+            } catch (err: any) {
+              setError(err.message || 'Error subiendo la imagen');
+            } finally {
+              setUploading(false);
+            }
+          }}
         />
       </div>
 
-      {/* LANGUAGE SWITCH */}
+      {/* LANGUAGE */}
       <div className="flex gap-2 flex-wrap">
         {LANGUAGES.map(l => (
           <button
@@ -95,26 +135,36 @@ const AdminBlogEditor: React.FC<Props> = ({
 
       {/* TITLE */}
       <div>
-        <label className="text-sm font-bold text-gray-600">
+        <label className="block text-sm font-semibold mb-1">
           Título ({lang.toUpperCase()})
         </label>
         <input
           value={post.title[lang]}
-          onChange={(e) => updateField('title', e.target.value)}
-          className="w-full mt-1 p-3 rounded-xl border"
+          onChange={e =>
+            setPost({
+              ...post,
+              title: { ...post.title, [lang]: e.target.value },
+            })
+          }
+          className="w-full p-3 border rounded-xl"
         />
       </div>
 
       {/* CONTENT */}
       <div>
-        <label className="text-sm font-bold text-gray-600">
+        <label className="block text-sm font-semibold mb-1">
           Contenido ({lang.toUpperCase()})
         </label>
         <textarea
           rows={8}
           value={post.content[lang]}
-          onChange={(e) => updateField('content', e.target.value)}
-          className="w-full mt-1 p-3 rounded-xl border"
+          onChange={e =>
+            setPost({
+              ...post,
+              content: { ...post.content, [lang]: e.target.value },
+            })
+          }
+          className="w-full p-3 border rounded-xl"
         />
       </div>
 
@@ -122,9 +172,10 @@ const AdminBlogEditor: React.FC<Props> = ({
       <div className="flex gap-4">
         <button
           onClick={() => onSave(post)}
+          disabled={uploading}
           className="bg-gray-900 text-white px-6 py-3 rounded-full"
         >
-          Guardar
+          {uploading ? 'Subiendo…' : 'Guardar'}
         </button>
 
         <button

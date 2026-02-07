@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getBlogPosts } from '../services/blog';
+import { supabase } from '../services/supabase';
 import AdminBlogEditor from './AdminBlogEditor';
 
 type Mode = 'list' | 'edit';
@@ -9,8 +9,17 @@ const AdminBlog: React.FC = () => {
   const [mode, setMode] = useState<Mode>('list');
   const [editingPost, setEditingPost] = useState<any | null>(null);
 
+  const loadPosts = async () => {
+    const { data } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    setPosts(data || []);
+  };
+
   useEffect(() => {
-    setPosts(getBlogPosts());
+    loadPosts();
   }, []);
 
   const handleNew = () => {
@@ -23,10 +32,15 @@ const AdminBlog: React.FC = () => {
     setMode('edit');
   };
 
-  const handleSave = (post: any) => {
-    console.log('POST GUARDADO (temporal):', post);
-    alert('Post guardado (temporal). Paso siguiente: persistencia.');
+  const handleSave = async (post: any) => {
+    if (post.id) {
+      await supabase.from('blog_posts').update(post).eq('id', post.id);
+    } else {
+      await supabase.from('blog_posts').insert(post);
+    }
+
     setMode('list');
+    loadPosts();
   };
 
   if (mode === 'edit') {
@@ -40,7 +54,7 @@ const AdminBlog: React.FC = () => {
   }
 
   return (
-    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow space-y-6">
+    <div className="bg-white p-8 rounded-3xl shadow space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-serif">Gestión de Blog</h2>
 
@@ -56,46 +70,32 @@ const AdminBlog: React.FC = () => {
         <p className="text-gray-500 italic">No hay posts todavía.</p>
       )}
 
-      {posts.length > 0 && (
-        <div className="grid md:grid-cols-2 gap-6">
-          {posts.map(post => (
-            <div
-              key={post.id}
-              className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm"
-            >
-              {post.image && (
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  className="h-40 w-full object-cover"
-                />
-              )}
+      <div className="grid md:grid-cols-2 gap-6">
+        {posts.map(post => (
+          <div key={post.id} className="rounded-2xl overflow-hidden shadow">
+            {post.image && (
+              <img src={post.image} className="h-40 w-full object-cover" />
+            )}
 
-              <div className="p-4 space-y-2">
-                <h3 className="font-bold">{post.title}</h3>
+            <div className="p-4">
+              <h3 className="font-bold">{post.title?.es}</h3>
 
-                {post.date && (
-                  <p className="text-xs text-gray-400">
-                    {new Date(post.date).toLocaleDateString('es-ES')}
-                  </p>
-                )}
+              <p className="text-xs text-gray-400">
+                {new Date(post.created_at).toLocaleDateString('es-ES')}
+              </p>
 
-                <div className="flex gap-4 text-sm">
-                  <button
-                    onClick={() => handleEdit(post)}
-                    className="text-blue-600 font-semibold hover:underline"
-                  >
-                    Editar
-                  </button>
-                  <button className="text-red-500 font-semibold hover:underline">
-                    Borrar
-                  </button>
-                </div>
+              <div className="flex gap-4 mt-2 text-sm">
+                <button
+                  onClick={() => handleEdit(post)}
+                  className="text-blue-600 font-semibold"
+                >
+                  Editar
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

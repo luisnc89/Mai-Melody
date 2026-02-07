@@ -14,11 +14,20 @@ interface Testimonial {
   language: Language;
   song_url: string;
   photo: string | null;
+  pack: string | null;
   visible: boolean;
   created_at: string;
 }
 
 const LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
+
+const PACKS = [
+  'Básico',
+  'Premium',
+  'Pareja',
+  'Cumpleaños',
+  'Memorial',
+];
 
 interface AdminProps {
   onLogout: () => void;
@@ -39,6 +48,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
     message: '',
     rating: 5,
     language: 'es' as Language,
+    pack: '',
     visible: true,
     songFile: null as File | null,
     photoFile: null as File | null,
@@ -124,6 +134,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
         message: form.message,
         rating: form.rating,
         language: form.language,
+        pack: form.pack || null,
         song_url: songUrl,
         photo: photoUrl,
         visible: form.visible,
@@ -136,6 +147,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
         message: '',
         rating: 5,
         language: 'es',
+        pack: '',
         visible: true,
         songFile: null,
         photoFile: null,
@@ -219,7 +231,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
                 onChange={e => setForm({ ...form, message: e.target.value })}
               />
 
-              <div className="flex gap-4 items-center">
+              <div className="flex flex-wrap gap-4 items-center">
                 <select
                   value={form.rating}
                   onChange={e =>
@@ -244,6 +256,19 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
                   ))}
                 </select>
 
+                <select
+                  value={form.pack}
+                  onChange={e =>
+                    setForm({ ...form, pack: e.target.value })
+                  }
+                  className="border rounded-xl px-3 py-2"
+                >
+                  <option value="">Pack</option>
+                  {PACKS.map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+
                 <label className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
@@ -257,12 +282,12 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
               </div>
 
               {/* IMAGE */}
-              <div className="space-y-2">
+              <div>
                 <label className="font-semibold text-sm">Foto de perfil</label>
                 {imagePreview && (
                   <img
                     src={imagePreview}
-                    className="w-16 h-16 rounded-full object-cover"
+                    className="w-16 h-16 rounded-full object-cover mt-2"
                   />
                 )}
                 <input
@@ -278,7 +303,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
               </div>
 
               {/* AUDIO */}
-              <div className="space-y-2">
+              <div>
                 <label className="font-semibold text-sm">Canción</label>
                 {audioName && (
                   <p className="text-xs text-gray-500">🎵 {audioName}</p>
@@ -302,31 +327,6 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
               >
                 {loading ? 'Guardando…' : 'Guardar testimonio'}
               </button>
-            </div>
-
-            {/* LIST */}
-            <div className="space-y-4">
-              {testimonials.map(t => (
-                <div key={t.id} className="bg-white p-5 rounded-2xl shadow">
-                  <div className="flex items-center gap-3 mb-2">
-                    {t.photo ? (
-                      <img
-                        src={t.photo}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center font-bold">
-                        {t.name.charAt(0)}
-                      </div>
-                    )}
-                    <strong>{t.name}</strong>
-                    <span className="text-xs text-gray-500">⭐ {t.rating}</span>
-                  </div>
-
-                  <p className="italic text-sm mb-2">“{t.message}”</p>
-                  <audio controls src={t.song_url} className="w-full h-8" />
-                </div>
-              ))}
             </div>
           </div>
         )}

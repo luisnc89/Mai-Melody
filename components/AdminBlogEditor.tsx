@@ -12,6 +12,13 @@ interface BlogPost {
   content: Record<Language, string>
 }
 
+const normalizeSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+
 const emptyPost: BlogPost = {
   slugs: { es: '', en: '', fr: '', it: '', ca: '' },
   image: null,
@@ -20,65 +27,47 @@ const emptyPost: BlogPost = {
 }
 
 interface Props {
-  initialPost?: BlogPost
+  initialPost?: any
   onCancel: () => void
   onSave: (post: BlogPost) => void
 }
-
-const normalizeSlug = (value: string) =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '')
 
 const AdminBlogEditor: React.FC<Props> = ({
   initialPost,
   onCancel,
   onSave,
 }) => {
-  const [post, setPost] = useState<BlogPost>(initialPost ?? emptyPost)
+  const [post, setPost] = useState<BlogPost>({
+    ...emptyPost,
+    ...initialPost,
+    slugs: {
+      ...emptyPost.slugs,
+      ...(initialPost?.slugs || {}),
+    },
+  })
+
   const [lang, setLang] = useState<Language>('es')
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    initialPost?.image ?? null
-  )
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  /* =====================
-     UPLOAD IMAGE
-  ===================== */
   const uploadImage = async (file: File) => {
     const ext = file.name.split('.').pop()
     const path = `covers/${crypto.randomUUID()}.${ext}`
 
     const { error } = await supabase.storage
       .from('blog')
-      .upload(path, file, { contentType: file.type })
+      .upload(path, file)
 
     if (error) throw error
 
     return supabase.storage.from('blog').getPublicUrl(path).data.publicUrl
   }
 
-  /* =====================
-     SAVE
-  ===================== */
   const handleSave = () => {
     setError(null)
 
     if (!post.slugs.es) {
-      setError('La URL (slug) en español es obligatoria')
-      return
-    }
-
-    if (!post.title.es) {
-      setError('El título en español es obligatorio')
-      return
-    }
-
-    if (!post.content.es) {
-      setError('El contenido en español es obligatorio')
+      setError('La URL en español es obligatoria')
       return
     }
 
@@ -97,43 +86,10 @@ const AdminBlogEditor: React.FC<Props> = ({
         </div>
       )}
 
-      {/* IMAGE */}
-      <div className="space-y-2">
-        <input
-          type="file"
-          accept="image/*"
-          disabled={uploading}
-          onChange={async e => {
-            const file = e.target.files?.[0]
-            if (!file) return
-
-            try {
-              setUploading(true)
-              const url = await uploadImage(file)
-              setPost(prev => ({ ...prev, image: url }))
-              setImagePreview(url)
-            } catch (err: any) {
-              setError(err.message || 'Error subiendo la imagen')
-            } finally {
-              setUploading(false)
-            }
-          }}
-        />
-
-        {imagePreview && (
-          <img
-            src={imagePreview}
-            className="h-40 rounded-xl object-cover"
-          />
-        )}
-      </div>
-
-      {/* LANGUAGE SELECTOR */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2">
         {LANGUAGES.map(l => (
           <button
             key={l}
-            type="button"
             onClick={() => setLang(l)}
             className={`px-4 py-1 rounded-full text-sm font-bold ${
               lang === l
@@ -146,7 +102,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         ))}
       </div>
 
-      {/* SLUG PER LANGUAGE */}
       <input
         value={post.slugs[lang]}
         onChange={e =>
@@ -158,11 +113,10 @@ const AdminBlogEditor: React.FC<Props> = ({
             },
           })
         }
-        placeholder={`URL del post (${lang.toUpperCase()})`}
+        placeholder={`URL (${lang.toUpperCase()})`}
         className="w-full p-3 border rounded-xl"
       />
 
-      {/* TITLE */}
       <input
         value={post.title[lang]}
         onChange={e =>
@@ -175,7 +129,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         className="w-full p-3 border rounded-xl"
       />
 
-      {/* CONTENT */}
       <textarea
         rows={6}
         value={post.content[lang]}
@@ -189,19 +142,16 @@ const AdminBlogEditor: React.FC<Props> = ({
         className="w-full p-3 border rounded-xl"
       />
 
-      {/* ACTIONS */}
       <div className="flex gap-4">
         <button
-          type="button"
           onClick={handleSave}
           disabled={uploading}
           className="bg-gray-900 text-white px-6 py-3 rounded-full"
         >
-          {uploading ? 'Subiendo…' : 'Guardar'}
+          Guardar
         </button>
 
         <button
-          type="button"
           onClick={onCancel}
           className="underline text-gray-500"
         >

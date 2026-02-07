@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState } from 'react'
 import { supabase } from '../services/supabase'
 import { Language } from '../types'
 
@@ -39,30 +39,23 @@ const AdminBlogEditor: React.FC<Props> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null)
 
-  const [post, setPost] = useState<BlogPost>(() => ({
+  const [post, setPost] = useState<BlogPost>({
     ...emptyPost,
     ...initialPost,
     slugs: { ...emptyPost.slugs, ...(initialPost?.slugs || {}) },
     title: { ...emptyPost.title, ...(initialPost?.title || {}) },
     content: { ...emptyPost.content, ...(initialPost?.content || {}) },
-  }))
+  })
 
   const [lang, setLang] = useState<Language>('es')
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  /* ======================
-     CARGAR CONTENIDO
-  ====================== */
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.innerHTML = post.content[lang] || ''
-    }
-  }, [lang])
+  const exec = (command: string, value?: string) => {
+    editorRef.current?.focus()
+    document.execCommand(command, false, value)
+  }
 
-  /* ======================
-     IMAGE UPLOAD
-  ====================== */
   const uploadImage = async (file: File) => {
     const ext = file.name.split('.').pop()
     const path = `covers/${crypto.randomUUID()}.${ext}`
@@ -76,48 +69,19 @@ const AdminBlogEditor: React.FC<Props> = ({
     return supabase.storage.from('blog').getPublicUrl(path).data.publicUrl
   }
 
-  /* ======================
-     FORMAT COMMANDS
-  ====================== */
-  const exec = (cmd: string) => {
-    editorRef.current?.focus()
-    document.execCommand(cmd)
-  }
-
-  /* ======================
-     CAMBIAR IDIOMA (CRÍTICO)
-  ====================== */
-  const changeLanguage = (newLang: Language) => {
-    // Guardar el contenido actual ANTES de cambiar
-    setPost(prev => ({
-      ...prev,
-      content: {
-        ...prev.content,
-        [lang]: editorRef.current?.innerHTML || '',
-      },
-    }))
-
-    setLang(newLang)
-  }
-
-  /* ======================
-     GUARDAR POST
-  ====================== */
   const handleSave = () => {
-    const updatedPost: BlogPost = {
+    if (!post.slugs.es || !post.title.es) {
+      setError('El slug y el título en español son obligatorios')
+      return
+    }
+
+    onSave({
       ...post,
       content: {
         ...post.content,
         [lang]: editorRef.current?.innerHTML || '',
       },
-    }
-
-    if (!updatedPost.slugs.es || !updatedPost.title.es) {
-      setError('El slug y el título en español son obligatorios')
-      return
-    }
-
-    onSave(updatedPost)
+    })
   }
 
   return (
@@ -132,7 +96,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         </div>
       )}
 
-      {/* IMAGE */}
+      {/* IMAGEN */}
       <input
         type="file"
         onChange={async e => {
@@ -149,12 +113,26 @@ const AdminBlogEditor: React.FC<Props> = ({
         <img src={post.image} className="h-40 rounded-xl" />
       )}
 
-      {/* LANG SELECT */}
+      {/* IDIOMAS */}
       <div className="flex gap-2">
         {LANGUAGES.map(l => (
           <button
             key={l}
-            onClick={() => changeLanguage(l)}
+            onClick={() => {
+              setPost(p => ({
+                ...p,
+                content: {
+                  ...p.content,
+                  [lang]: editorRef.current?.innerHTML || '',
+                },
+              }))
+              setLang(l)
+              setTimeout(() => {
+                if (editorRef.current) {
+                  editorRef.current.innerHTML = post.content[l] || ''
+                }
+              })
+            }}
             className={`px-3 py-1 rounded-full ${
               l === lang ? 'bg-black text-white' : 'bg-gray-200'
             }`}
@@ -177,10 +155,10 @@ const AdminBlogEditor: React.FC<Props> = ({
           }))
         }
         className="w-full p-3 border rounded-xl"
-        placeholder={`URL (${lang.toUpperCase()})`}
+        placeholder="URL"
       />
 
-      {/* TITLE */}
+      {/* TÍTULO */}
       <input
         value={post.title[lang]}
         onChange={e =>
@@ -190,19 +168,20 @@ const AdminBlogEditor: React.FC<Props> = ({
           }))
         }
         className="w-full p-3 border rounded-xl"
-        placeholder={`Título (${lang.toUpperCase()})`}
+        placeholder="Título"
       />
 
-      {/* TOOLBAR */}
-      <div className="flex gap-2">
-        <button onClick={() => exec('bold')}>B</button>
-        <button onClick={() => exec('italic')}>I</button>
-        <button onClick={() => exec('insertUnorderedList')}>•</button>
-        <button onClick={() => exec('insertOrderedList')}>1.</button>
+      {/* 🧰 TOOLBAR */}
+      <div className="flex gap-2 border rounded-xl p-2 bg-gray-50">
+        <button onClick={() => exec('bold')} className="font-bold">B</button>
+        <button onClick={() => exec('formatBlock', 'h2')}>H2</button>
+        <button onClick={() => exec('formatBlock', 'h3')}>H3</button>
+        <button onClick={() => exec('insertUnorderedList')}>• Lista</button>
+        <button onClick={() => exec('insertOrderedList')}>1. Lista</button>
         <button
           onClick={() => {
-            const url = prompt('URL')
-            if (url) document.execCommand('createLink', false, url)
+            const url = prompt('URL del enlace')
+            if (url) exec('createLink', url)
           }}
         >
           🔗
@@ -213,8 +192,10 @@ const AdminBlogEditor: React.FC<Props> = ({
       <div
         ref={editorRef}
         contentEditable
-        className="border p-4 rounded-xl min-h-[250px] prose max-w-none"
-        suppressContentEditableWarning
+        className="border p-4 rounded-xl min-h-[240px] focus:outline-none prose max-w-none"
+        dangerouslySetInnerHTML={{
+          __html: post.content[lang] || '',
+        }}
       />
 
       <div className="flex gap-4">

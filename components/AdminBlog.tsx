@@ -1,111 +1,103 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../services/supabase';
-import AdminBlogEditor from './AdminBlogEditor';
+import React, { useEffect, useState } from 'react'
+import { supabase } from '../services/supabase'
+import AdminBlogEditor from './AdminBlogEditor'
 
-type Mode = 'list' | 'edit';
+type Mode = 'list' | 'edit'
 
 const AdminBlog: React.FC = () => {
-  const [posts, setPosts] = useState<any[]>([]);
-  const [mode, setMode] = useState<Mode>('list');
-  const [editingPost, setEditingPost] = useState<any | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [posts, setPosts] = useState<any[]>([])
+  const [mode, setMode] = useState<Mode>('list')
+  const [editingPost, setEditingPost] = useState<any | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   /* =====================
      LOAD POSTS
   ===================== */
   const loadPosts = async () => {
-    setError(null);
+    setError(null)
+    setLoading(true)
 
     const { data, error } = await supabase
       .from('blog_posts')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('LOAD POSTS ERROR:', error);
-      setError(error.message);
-      return;
+      console.error('LOAD POSTS ERROR:', error)
+      setError(error.message)
+      setLoading(false)
+      return
     }
 
-    setPosts(data || []);
-  };
+    setPosts(data || [])
+    setLoading(false)
+  }
 
   useEffect(() => {
-    loadPosts();
-  }, []);
+    loadPosts()
+  }, [])
 
   /* =====================
      ACTIONS
   ===================== */
   const handleNew = () => {
-    setEditingPost(null);
-    setMode('edit');
-  };
+    setEditingPost(null)
+    setMode('edit')
+  }
 
   const handleEdit = (post: any) => {
-    setEditingPost(post);
-    setMode('edit');
-  };
+    setEditingPost(post)
+    setMode('edit')
+  }
 
   /* =====================
-     SAVE POST (FIX 403)
+     SAVE POST
   ===================== */
   const handleSave = async (post: any) => {
-    setError(null);
-    setLoading(true);
+    setError(null)
+    setLoading(true)
 
     try {
-      // 🔐 COMPROBAR SESIÓN
       const { data: sessionData, error: sessionError } =
-        await supabase.auth.getSession();
+        await supabase.auth.getSession()
 
-      console.log('SESSION:', sessionData);
-
-      if (sessionError) throw sessionError;
-
+      if (sessionError) throw sessionError
       if (!sessionData.session) {
-        throw new Error(
-          'No hay sesión activa en Supabase. El admin no está autenticado.'
-        );
+        throw new Error('No hay sesión activa en Supabase')
       }
 
-      let response;
+      const payload = {
+        slugs: post.slugs,
+        image: post.image,
+        title: post.title,
+        content: post.content,
+      }
 
       if (post.id) {
-        response = await supabase
+        const { error } = await supabase
           .from('blog_posts')
-          .update({
-            slug: post.slug,
-            image: post.image,
-            title: post.title,
-            content: post.content,
-          })
-          .eq('id', post.id);
+          .update(payload)
+          .eq('id', post.id)
+
+        if (error) throw error
       } else {
-        response = await supabase.from('blog_posts').insert({
-          slug: post.slug,
-          image: post.image,
-          title: post.title,
-          content: post.content,
-        });
+        const { error } = await supabase
+          .from('blog_posts')
+          .insert(payload)
+
+        if (error) throw error
       }
 
-      if (response.error) {
-        throw response.error;
-      }
-
-      console.log('POST GUARDADO EN SUPABASE ✅');
-
-      setMode('list');
-      loadPosts();
+      setMode('list')
+      loadPosts()
     } catch (err: any) {
-      console.error('SAVE BLOG ERROR:', err);
-      setError(err.message || 'Error guardando el post');
+      console.error('SAVE BLOG ERROR:', err)
+      setError(err.message || 'Error guardando el post')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   /* =====================
      EDIT MODE
@@ -117,7 +109,7 @@ const AdminBlog: React.FC = () => {
         onCancel={() => setMode('list')}
         onSave={handleSave}
       />
-    );
+    )
   }
 
   /* =====================
@@ -142,42 +134,48 @@ const AdminBlog: React.FC = () => {
         </div>
       )}
 
-      {posts.length === 0 && !loading && (
+      {loading && (
+        <p className="text-gray-500 italic">Cargando posts…</p>
+      )}
+
+      {!loading && posts.length === 0 && (
         <p className="text-gray-500 italic">No hay posts todavía.</p>
       )}
 
       <div className="grid md:grid-cols-2 gap-6">
-        {posts.map(post => (
-          <div key={post.id} className="rounded-2xl overflow-hidden shadow">
-            {post.image && (
-              <img
-                src={post.image}
-                className="h-40 w-full object-cover"
-                alt=""
-              />
-            )}
+        {posts.map(post => {
+          const title = post.title?.es || 'Sin título'
 
-            <div className="p-4">
-              <h3 className="font-bold">
-                {post.title?.es || 'Sin título'}
-              </h3>
+          return (
+            <div key={post.id} className="rounded-2xl overflow-hidden shadow">
+              {post.image && (
+                <img
+                  src={post.image}
+                  className="h-40 w-full object-cover"
+                  alt={title}
+                />
+              )}
 
-              <p className="text-xs text-gray-400">
-                {new Date(post.created_at).toLocaleDateString('es-ES')}
-              </p>
+              <div className="p-4">
+                <h3 className="font-bold">{title}</h3>
 
-              <button
-                onClick={() => handleEdit(post)}
-                className="text-blue-600 font-semibold mt-2"
-              >
-                Editar
-              </button>
+                <p className="text-xs text-gray-400">
+                  {new Date(post.created_at).toLocaleDateString('es-ES')}
+                </p>
+
+                <button
+                  onClick={() => handleEdit(post)}
+                  className="text-blue-600 font-semibold mt-2"
+                >
+                  Editar
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AdminBlog;
+export default AdminBlog

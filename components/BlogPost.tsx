@@ -20,8 +20,6 @@ const BlogPost: React.FC = () => {
 
   useEffect(() => {
     const loadPost = async () => {
-      setLoading(true)
-
       const { data } = await supabase
         .from('blog_posts')
         .select('*')
@@ -52,29 +50,32 @@ const BlogPost: React.FC = () => {
   }
 
   const title = post.title?.[language] || post.title?.es
-  const content = post.content?.[language] || post.content?.es || ''
+  const content = post.content?.[language] || post.content?.es
 
   return (
-    <div className="pt-32 pb-20 px-4 min-h-screen bg-warm-white">
-      <div className="max-w-3xl mx-auto space-y-12">
+    <div className="pt-32 pb-24 px-4 min-h-screen bg-warm-white">
+      <article className="max-w-3xl mx-auto space-y-12">
 
+        {/* Volver */}
         <button
           onClick={() => navigate(`/${language}/blog`)}
-          className="text-sm text-gray-500 hover:text-violet-600 font-bold"
+          className="text-sm text-gray-500 hover:text-violet-600 font-semibold"
         >
           ← {t.blog_back}
         </button>
 
-        <div className="text-center space-y-4">
-          <p className="text-violet-500 font-bold text-xs uppercase">
+        {/* Cabecera */}
+        <header className="text-center space-y-4">
+          <p className="text-violet-500 font-bold text-xs uppercase tracking-wide">
             {new Date(post.created_at).toLocaleDateString('es-ES')}
           </p>
 
-          <h1 className="text-5xl font-serif">
+          <h1 className="text-4xl md:text-5xl font-serif leading-tight">
             {title}
           </h1>
-        </div>
+        </header>
 
+        {/* Imagen */}
         {post.image && (
           <div className="rounded-3xl overflow-hidden shadow-xl">
             <img
@@ -85,12 +86,20 @@ const BlogPost: React.FC = () => {
           </div>
         )}
 
-        {/* CONTENIDO HTML (React Quill) */}
+        {/* Contenido */}
         <div
-          className="prose prose-lg max-w-none"
+          className="
+            prose prose-lg max-w-none
+            prose-p:leading-relaxed
+            prose-p:my-4
+            prose-h3:mt-8 prose-h3:mb-3
+            prose-ul:my-4 prose-li:my-1
+            prose-strong:text-gray-900
+            prose-a:text-violet-600 prose-a:font-semibold hover:prose-a:underline
+          "
           dangerouslySetInnerHTML={{ __html: content }}
         />
-      </div>
+      </article>
     </div>
   )
 }

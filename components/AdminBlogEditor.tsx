@@ -12,13 +12,6 @@ interface BlogPost {
   content: Record<Language, string>
 }
 
-const normalizeSlug = (value: string) =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '')
-
 const emptyPost: BlogPost = {
   slugs: { es: '', en: '', fr: '', it: '', ca: '' },
   image: null,
@@ -31,6 +24,13 @@ interface Props {
   onCancel: () => void
   onSave: (post: BlogPost) => void
 }
+
+const normalizeSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
 
 const AdminBlogEditor: React.FC<Props> = ({
   initialPost,
@@ -50,24 +50,40 @@ const AdminBlogEditor: React.FC<Props> = ({
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  /* =====================
+     IMAGE UPLOAD
+  ===================== */
   const uploadImage = async (file: File) => {
     const ext = file.name.split('.').pop()
     const path = `covers/${crypto.randomUUID()}.${ext}`
 
     const { error } = await supabase.storage
       .from('blog')
-      .upload(path, file)
+      .upload(path, file, { contentType: file.type })
 
     if (error) throw error
 
     return supabase.storage.from('blog').getPublicUrl(path).data.publicUrl
   }
 
+  /* =====================
+     SAVE
+  ===================== */
   const handleSave = () => {
     setError(null)
 
     if (!post.slugs.es) {
       setError('La URL en español es obligatoria')
+      return
+    }
+
+    if (!post.title.es) {
+      setError('El título en español es obligatorio')
+      return
+    }
+
+    if (!post.content.es) {
+      setError('El contenido en español es obligatorio')
       return
     }
 
@@ -86,10 +102,43 @@ const AdminBlogEditor: React.FC<Props> = ({
         </div>
       )}
 
-      <div className="flex gap-2">
+      {/* IMAGE */}
+      <div className="space-y-2">
+        <input
+          type="file"
+          accept="image/*"
+          disabled={uploading}
+          onChange={async e => {
+            const file = e.target.files?.[0]
+            if (!file) return
+
+            try {
+              setUploading(true)
+              const url = await uploadImage(file)
+              setPost(prev => ({ ...prev, image: url }))
+            } catch (err: any) {
+              setError(err.message || 'Error subiendo la imagen')
+            } finally {
+              setUploading(false)
+            }
+          }}
+        />
+
+        {post.image && (
+          <img
+            src={post.image}
+            className="h-40 rounded-xl object-cover"
+            alt=""
+          />
+        )}
+      </div>
+
+      {/* LANGUAGE SELECTOR */}
+      <div className="flex gap-2 flex-wrap">
         {LANGUAGES.map(l => (
           <button
             key={l}
+            type="button"
             onClick={() => setLang(l)}
             className={`px-4 py-1 rounded-full text-sm font-bold ${
               lang === l
@@ -102,6 +151,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         ))}
       </div>
 
+      {/* SLUG */}
       <input
         value={post.slugs[lang]}
         onChange={e =>
@@ -117,6 +167,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         className="w-full p-3 border rounded-xl"
       />
 
+      {/* TITLE */}
       <input
         value={post.title[lang]}
         onChange={e =>
@@ -129,8 +180,9 @@ const AdminBlogEditor: React.FC<Props> = ({
         className="w-full p-3 border rounded-xl"
       />
 
+      {/* CONTENT */}
       <textarea
-        rows={6}
+        rows={8}
         value={post.content[lang]}
         onChange={e =>
           setPost({
@@ -142,16 +194,19 @@ const AdminBlogEditor: React.FC<Props> = ({
         className="w-full p-3 border rounded-xl"
       />
 
+      {/* ACTIONS */}
       <div className="flex gap-4">
         <button
+          type="button"
           onClick={handleSave}
           disabled={uploading}
           className="bg-gray-900 text-white px-6 py-3 rounded-full"
         >
-          Guardar
+          {uploading ? 'Subiendo…' : 'Guardar'}
         </button>
 
         <button
+          type="button"
           onClick={onCancel}
           className="underline text-gray-500"
         >

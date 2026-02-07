@@ -52,7 +52,7 @@ const BlogPost: React.FC = () => {
   }
 
   const title = post.title?.[language] || post.title?.es
-  const content = post.content?.[language] || post.content?.es
+  const content = post.content?.[language] || post.content?.es || ''
 
   return (
     <div className="pt-32 pb-20 px-4 min-h-screen bg-warm-white">
@@ -85,9 +85,11 @@ const BlogPost: React.FC = () => {
           </div>
         )}
 
-        <div className="prose prose-lg max-w-none whitespace-pre-wrap">
-          {content}
-        </div>
+        {/* CONTENIDO HTML (React Quill) */}
+        <div
+          className="prose prose-lg max-w-none"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
       </div>
     </div>
   )

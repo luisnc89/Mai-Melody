@@ -291,6 +291,7 @@ useEffect(() => {
     key={o.id}
     onClick={() => setSelectedOrder(o)}
     className="border-b last:border-0 cursor-pointer hover:bg-gray-50"
+    
   >
                       <td>{new Date(o.created_at).toLocaleString()}</td>
                       <td>{o.email}</td>
@@ -312,7 +313,13 @@ useEffect(() => {
 
       loadOrders();
     }}
-    className="border rounded-lg px-2 py-1 text-xs font-semibold"
+    className={`border rounded-lg px-2 py-1 text-xs font-semibold
+  ${o.status === 'pendiente'
+    ? 'bg-yellow-100 text-yellow-800'
+    : o.status === 'procesado'
+    ? 'bg-blue-100 text-blue-800'
+    : 'bg-green-100 text-green-800'
+  }`}
   >
     <option value="pendiente">Pendiente</option>
     <option value="procesado">Procesado</option>
@@ -336,7 +343,8 @@ useEffect(() => {
     </h3>
 
     <p><strong>Email:</strong> {selectedOrder.email}</p>
-    <p><strong>Para:</strong> {selectedOrder.to_name}</p>
+    <p><strong>De:</strong> {selectedOrder.from_name}</p>
+    <p><strong>Dedicada a:</strong> {selectedOrder.to_name}</p>
     <p><strong>Título:</strong> {selectedOrder.title}</p>
     <p><strong>Ocasión:</strong> {selectedOrder.occasion}</p>
     <p><strong>Estilo musical:</strong> {selectedOrder.musical_style}</p>

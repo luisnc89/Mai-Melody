@@ -51,7 +51,6 @@ const AdminBlogEditor: React.FC<Props> = ({
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState(false)
 
-  /* IMAGE UPLOAD */
   const uploadImage = async (file: File) => {
     setUploading(true)
 
@@ -110,7 +109,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         </div>
       )}
 
-      {/* IDIOMAS */}
       <div className="flex gap-2">
         {LANGUAGES.map(l => (
           <button
@@ -127,7 +125,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         ))}
       </div>
 
-      {/* IMAGE */}
       <div className="space-y-2">
         <label className="font-semibold text-sm">
           Imagen del post
@@ -149,7 +146,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         )}
       </div>
 
-      {/* SLUG */}
       <input
         value={post.slugs[lang]}
         onChange={e =>
@@ -165,7 +161,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         placeholder="URL"
       />
 
-      {/* TITULO */}
       <input
         value={post.title[lang]}
         onChange={e =>
@@ -181,7 +176,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         placeholder="Título"
       />
 
-      {/* EDITOR */}
       <RichTextEditor
         value={post.content[lang]}
         onChange={html =>
@@ -195,7 +189,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         }
       />
 
-      {/* PREVIEW */}
       <button
         onClick={() => setPreview(p => !p)}
         className="text-sm underline"
@@ -210,7 +203,6 @@ const AdminBlogEditor: React.FC<Props> = ({
         />
       )}
 
-      {/* ACTIONS */}
       <div className="flex gap-4">
         <button
           onClick={handleSave}

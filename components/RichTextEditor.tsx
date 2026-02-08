@@ -14,42 +14,32 @@ interface Props {
 const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: {
+          levels: [2, 3],
+        },
+      }),
       Underline,
       Image,
       Link.configure({
         openOnClick: false,
         autolink: true,
-        HTMLAttributes: {
-          class: 'text-blue-600 underline',
-        },
       }),
       Placeholder.configure({
         placeholder: 'Escribe aquí el contenido del post…',
       }),
     ],
     content: value,
-    editorProps: {
-      attributes: {
-        class: 'focus:outline-none',
-      },
-    },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
   })
 
-  /**
-   * 🔴 CLAVE
-   * TipTap NO es un input controlado.
-   * Cuando cambia `value` (idioma / post), hay que sincronizar.
-   */
+  // 🔴 sincronizar cuando cambia idioma / post
   useEffect(() => {
     if (!editor) return
 
-    const currentHTML = editor.getHTML()
-
-    if (currentHTML !== value) {
+    if (editor.getHTML() !== value) {
       editor.commands.setContent(value || '', {
         emitUpdate: false,
       })
@@ -67,7 +57,7 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
 
   const setLink = () => {
     const previousUrl = editor.getAttributes('link').href
-    const url = window.prompt('URL del enlace', previousUrl)
+    const url = window.prompt('URL del enlace', previousUrl || '')
 
     if (url === null) return
 
@@ -79,12 +69,11 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
     editor.chain().focus().setLink({ href: url }).run()
   }
 
-  const buttonBase =
-    'px-2 py-1 rounded text-sm border border-transparent'
-  const buttonActive =
-    'bg-gray-900 text-white border-gray-900'
-  const buttonInactive =
-    'bg-white text-gray-700 hover:bg-gray-100'
+  const btn =
+    'px-2 py-1 rounded text-sm border transition'
+  const active = 'bg-gray-900 text-white border-gray-900'
+  const inactive =
+    'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
 
   return (
     <div className="border rounded-xl overflow-hidden">
@@ -92,10 +81,8 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
       <div className="flex flex-wrap gap-1 border-b bg-gray-50 p-2">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`${buttonBase} ${
-            editor.isActive('bold')
-              ? buttonActive
-              : buttonInactive
+          className={`${btn} ${
+            editor.isActive('bold') ? active : inactive
           } font-bold`}
         >
           B
@@ -103,10 +90,8 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
 
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`${buttonBase} ${
-            editor.isActive('italic')
-              ? buttonActive
-              : buttonInactive
+          className={`${btn} ${
+            editor.isActive('italic') ? active : inactive
           } italic`}
         >
           I
@@ -114,10 +99,8 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
 
         <button
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`${buttonBase} ${
-            editor.isActive('underline')
-              ? buttonActive
-              : buttonInactive
+          className={`${btn} ${
+            editor.isActive('underline') ? active : inactive
           } underline`}
         >
           U
@@ -127,10 +110,10 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 2 }).run()
           }
-          className={`${buttonBase} ${
+          className={`${btn} ${
             editor.isActive('heading', { level: 2 })
-              ? buttonActive
-              : buttonInactive
+              ? active
+              : inactive
           }`}
         >
           H2
@@ -140,10 +123,10 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 3 }).run()
           }
-          className={`${buttonBase} ${
+          className={`${btn} ${
             editor.isActive('heading', { level: 3 })
-              ? buttonActive
-              : buttonInactive
+              ? active
+              : inactive
           }`}
         >
           H3
@@ -153,10 +136,10 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
           onClick={() =>
             editor.chain().focus().toggleBulletList().run()
           }
-          className={`${buttonBase} ${
+          className={`${btn} ${
             editor.isActive('bulletList')
-              ? buttonActive
-              : buttonInactive
+              ? active
+              : inactive
           }`}
         >
           • Lista
@@ -166,35 +149,29 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
           onClick={() =>
             editor.chain().focus().toggleOrderedList().run()
           }
-          className={`${buttonBase} ${
+          className={`${btn} ${
             editor.isActive('orderedList')
-              ? buttonActive
-              : buttonInactive
+              ? active
+              : inactive
           }`}
         >
           1. Lista
         </button>
 
-        <button
-          onClick={setLink}
-          className={`${buttonBase} ${buttonInactive}`}
-        >
+        <button onClick={setLink} className={`${btn} ${inactive}`}>
           🔗 Link
         </button>
 
-        <button
-          onClick={addImage}
-          className={`${buttonBase} ${buttonInactive}`}
-        >
+        <button onClick={addImage} className={`${btn} ${inactive}`}>
           🖼 Imagen
         </button>
 
         <button
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
-          className={`${buttonBase} ${
+          className={`${btn} ${
             editor.can().undo()
-              ? buttonInactive
+              ? inactive
               : 'opacity-40 cursor-not-allowed'
           }`}
         >
@@ -204,9 +181,9 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
         <button
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
-          className={`${buttonBase} ${
+          className={`${btn} ${
             editor.can().redo()
-              ? buttonInactive
+              ? inactive
               : 'opacity-40 cursor-not-allowed'
           }`}
         >
@@ -220,14 +197,32 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
         className="
           p-4
           min-h-[260px]
-          prose
-          max-w-none
-          prose-p:my-3
-          prose-headings:font-serif
-          prose-h2:text-2xl
-          prose-h3:text-xl
-          prose-a:text-blue-600
-          prose-a:underline
+          focus:outline-none
+
+          [&_p]:my-3
+
+          [&_h2]:text-2xl
+          [&_h2]:font-serif
+          [&_h2]:font-bold
+          [&_h2]:my-4
+
+          [&_h3]:text-xl
+          [&_h3]:font-serif
+          [&_h3]:font-semibold
+          [&_h3]:my-3
+
+          [&_ul]:list-disc
+          [&_ul]:pl-6
+          [&_ul]:my-3
+
+          [&_ol]:list-decimal
+          [&_ol]:pl-6
+          [&_ol]:my-3
+
+          [&_li]:my-1
+
+          [&_a]:text-blue-600
+          [&_a]:underline
         "
       />
     </div>

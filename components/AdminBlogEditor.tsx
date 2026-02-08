@@ -49,10 +49,9 @@ const AdminBlogEditor: React.FC<Props> = ({
   const [lang, setLang] = useState<Language>('es')
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [preview, setPreview] = useState(false)
 
-  /* =====================
-     IMAGE UPLOAD
-  ===================== */
+  /* IMAGE UPLOAD */
   const uploadImage = async (file: File) => {
     setUploading(true)
 
@@ -90,9 +89,6 @@ const AdminBlogEditor: React.FC<Props> = ({
     }
   }
 
-  /* =====================
-     SAVE
-  ===================== */
   const handleSave = () => {
     if (!post.title[lang] || !post.slugs[lang]) {
       setError('Título y URL son obligatorios')
@@ -144,11 +140,7 @@ const AdminBlogEditor: React.FC<Props> = ({
           />
         )}
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-        />
+        <input type="file" accept="image/*" onChange={handleImageChange} />
 
         {uploading && (
           <p className="text-xs italic text-gray-500">
@@ -189,9 +181,9 @@ const AdminBlogEditor: React.FC<Props> = ({
         placeholder="Título"
       />
 
-      {/* RICH TEXT EDITOR */}
+      {/* EDITOR */}
       <RichTextEditor
-        value={post.content[lang] || ''}
+        value={post.content[lang]}
         onChange={html =>
           setPost(p => ({
             ...p,
@@ -202,6 +194,21 @@ const AdminBlogEditor: React.FC<Props> = ({
           }))
         }
       />
+
+      {/* PREVIEW */}
+      <button
+        onClick={() => setPreview(p => !p)}
+        className="text-sm underline"
+      >
+        {preview ? 'Ocultar preview' : 'Ver preview'}
+      </button>
+
+      {preview && (
+        <div
+          className="prose max-w-none border rounded-xl p-4"
+          dangerouslySetInnerHTML={{ __html: post.content[lang] }}
+        />
+      )}
 
       {/* ACTIONS */}
       <div className="flex gap-4">

@@ -119,34 +119,39 @@ const BlogPost: React.FC = () => {
 
         {/* CONTENIDO */}
         <div
-          className="
-            prose prose-lg max-w-none
+  className="
+    text-base leading-relaxed text-gray-800
 
-            prose-p:leading-relaxed
-            prose-p:my-5
+    [&_p]:my-5
 
-            prose-h2:font-serif
-            prose-h2:text-3xl
-            prose-h2:mt-12
-            prose-h2:mb-4
+    [&_h2]:text-3xl
+    [&_h2]:font-serif
+    [&_h2]:font-bold
+    [&_h2]:mt-12
+    [&_h2]:mb-4
 
-            prose-h3:font-serif
-            prose-h3:text-2xl
-            prose-h3:mt-8
-            prose-h3:mb-3
+    [&_h3]:text-2xl
+    [&_h3]:font-serif
+    [&_h3]:font-semibold
+    [&_h3]:mt-8
+    [&_h3]:mb-3
 
-            prose-ul:my-5
-            prose-ol:my-5
-            prose-li:my-1
+    [&_ul]:list-disc
+    [&_ul]:pl-6
+    [&_ul]:my-5
 
-            prose-strong:text-gray-900
+    [&_ol]:list-decimal
+    [&_ol]:pl-6
+    [&_ol]:my-5
 
-            prose-a:text-violet-600
-            prose-a:font-semibold
-            hover:prose-a:underline
-          "
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
+    [&_li]:my-1
+
+    [&_a]:text-violet-600
+    [&_a]:font-semibold
+    hover:[&_a]:underline
+  "
+  dangerouslySetInnerHTML={{ __html: content }}
+/>
       </article>
     </div>
   )

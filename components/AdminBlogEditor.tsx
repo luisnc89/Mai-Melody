@@ -94,6 +94,11 @@ const AdminBlogEditor: React.FC<Props> = ({
      SAVE
   ===================== */
   const handleSave = () => {
+    if (!post.title[lang] || !post.slugs[lang]) {
+      setError('Título y URL son obligatorios')
+      return
+    }
+
     onSave(post)
   }
 
@@ -115,8 +120,10 @@ const AdminBlogEditor: React.FC<Props> = ({
           <button
             key={l}
             onClick={() => setLang(l)}
-            className={`px-3 py-1 rounded-full ${
-              l === lang ? 'bg-black text-white' : 'bg-gray-200'
+            className={`px-3 py-1 rounded-full text-sm ${
+              l === lang
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-200'
             }`}
           >
             {l.toUpperCase()}
@@ -182,7 +189,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         placeholder="Título"
       />
 
-      {/* EDITOR REAL */}
+      {/* RICH TEXT EDITOR */}
       <RichTextEditor
         value={post.content[lang] || ''}
         onChange={html =>
@@ -196,10 +203,11 @@ const AdminBlogEditor: React.FC<Props> = ({
         }
       />
 
+      {/* ACTIONS */}
       <div className="flex gap-4">
         <button
           onClick={handleSave}
-          className="bg-black text-white px-6 py-3 rounded-full"
+          className="bg-gray-900 text-white px-6 py-3 rounded-full"
         >
           Guardar
         </button>

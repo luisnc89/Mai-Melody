@@ -254,21 +254,35 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="py-2">Fecha</th>
+                    <th>Fecha</th>
                     <th>Email</th>
+                    <th>Título</th>
+                    <th>Para</th>
                     <th>Pack</th>
                     <th>Precio</th>
                     <th>Estado</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map(order => (
-                    <tr key={order.id} className="border-b last:border-0">
-                      <td>{new Date(order.created_at).toLocaleString()}</td>
-                      <td>{order.email}</td>
-                      <td>{order.pack}</td>
-                      <td>{order.price} €</td>
-                      <td>{order.status}</td>
+                  {orders.map(o => (
+                    <tr key={o.id} className="border-b last:border-0">
+                      <td>{new Date(o.created_at).toLocaleString()}</td>
+                      <td>{o.email}</td>
+                      <td>{o.title}</td>
+                      <td>{o.to_name}</td>
+                      <td>{o.pack}</td>
+                      <td>{o.price} €</td>
+                      <td>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          o.status === 'pendiente'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : o.status === 'procesado'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {o.status}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -279,49 +293,107 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
 
         {/* TESTIMONIALS */}
         {activeTab === 'testimonials' && (
-          <div className="space-y-8">
+          <div className="bg-white p-8 rounded-3xl shadow space-y-6">
+            <h2 className="text-2xl font-serif">Añadir testimonio</h2>
+
             {error && (
               <div className="bg-red-100 text-red-700 p-4 rounded-xl">
                 {error}
               </div>
             )}
 
-            <div className="bg-white p-8 rounded-3xl shadow space-y-6">
-              <h2 className="text-2xl font-serif">Añadir testimonio</h2>
+            <input
+              placeholder="Nombre de la persona"
+              className="border rounded-xl px-4 py-3 w-full"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+            />
 
-              <input
-                className="border rounded-xl px-4 py-3 w-full"
-                placeholder="Nombre"
-                value={form.name}
-                onChange={e => setForm({ ...form, name: e.target.value })}
-              />
+            <textarea
+              placeholder="Mensaje del testimonio"
+              className="border rounded-xl px-4 py-3 w-full min-h-[140px]"
+              value={form.message}
+              onChange={e => setForm({ ...form, message: e.target.value })}
+            />
 
-              <textarea
-                className="border rounded-xl px-4 py-3 w-full min-h-[140px]"
-                placeholder="Mensaje"
-                value={form.message}
-                onChange={e => setForm({ ...form, message: e.target.value })}
-              />
-
-              <input
-                type="file"
-                accept="audio/*"
-                onChange={e => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  setForm({ ...form, songFile: file });
-                  setAudioName(file.name);
-                }}
-              />
-
-              <button
-                onClick={handleSaveTestimonial}
-                disabled={loading}
-                className="bg-gray-900 text-white px-8 py-3 rounded-full font-bold"
+            <div className="grid md:grid-cols-2 gap-4">
+              <select
+                className="border rounded-xl px-3 py-2"
+                value={form.language}
+                onChange={e =>
+                  setForm({ ...form, language: e.target.value as Language })
+                }
               >
-                {loading ? 'Guardando…' : 'Guardar testimonio'}
-              </button>
+                {LANGUAGES.map(l => (
+                  <option key={l} value={l}>
+                    Idioma: {l.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="border rounded-xl px-3 py-2"
+                value={form.pack}
+                onChange={e =>
+                  setForm({ ...form, pack: e.target.value })
+                }
+              >
+                <option value="">Pack (opcional)</option>
+                {PACKS.map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
             </div>
+
+            <label className="text-sm font-semibold">Canción del cliente</label>
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setForm({ ...form, songFile: file });
+                setAudioName(file.name);
+              }}
+            />
+            {audioName && <p className="text-xs">🎵 {audioName}</p>}
+
+            <label className="text-sm font-semibold">Foto de perfil</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setForm({ ...form, photoFile: file });
+                setImagePreview(URL.createObjectURL(file));
+              }}
+            />
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                className="w-16 h-16 rounded-full object-cover"
+              />
+            )}
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.visible}
+                onChange={e =>
+                  setForm({ ...form, visible: e.target.checked })
+                }
+              />
+              Visible en la web
+            </label>
+
+            <button
+              onClick={handleSaveTestimonial}
+              disabled={loading}
+              className="bg-gray-900 text-white px-8 py-3 rounded-full font-bold"
+            >
+              {loading ? 'Guardando…' : 'Guardar testimonio'}
+            </button>
           </div>
         )}
 

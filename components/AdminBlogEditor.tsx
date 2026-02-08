@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
 import { supabase } from '../services/supabase'
 import { Language } from '../types'
+import RichTextEditor from './RichTextEditor'
 
 const LANGUAGES: Language[] = ['es', 'en', 'fr', 'it', 'ca']
 
@@ -26,15 +27,17 @@ interface Props {
 }
 
 const normalizeSlug = (value: string) =>
-  value.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
 
 const AdminBlogEditor: React.FC<Props> = ({
   initialPost,
   onCancel,
   onSave,
 }) => {
-  const editorRef = useRef<HTMLDivElement>(null)
-
   const [post, setPost] = useState<BlogPost>({
     ...emptyPost,
     ...initialPost,
@@ -88,21 +91,10 @@ const AdminBlogEditor: React.FC<Props> = ({
   }
 
   /* =====================
-     EDITOR HELPERS
+     SAVE
   ===================== */
-  const insertHTML = (html: string) => {
-    editorRef.current?.focus()
-    document.execCommand('insertHTML', false, html)
-  }
-
   const handleSave = () => {
-    onSave({
-      ...post,
-      content: {
-        ...post.content,
-        [lang]: editorRef.current?.innerHTML || '',
-      },
-    })
+    onSave(post)
   }
 
   return (
@@ -122,21 +114,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         {LANGUAGES.map(l => (
           <button
             key={l}
-            onClick={() => {
-              setPost(p => ({
-                ...p,
-                content: {
-                  ...p.content,
-                  [lang]: editorRef.current?.innerHTML || '',
-                },
-              }))
-              setLang(l)
-              setTimeout(() => {
-                if (editorRef.current) {
-                  editorRef.current.innerHTML = post.content[l] || ''
-                }
-              })
-            }}
+            onClick={() => setLang(l)}
             className={`px-3 py-1 rounded-full ${
               l === lang ? 'bg-black text-white' : 'bg-gray-200'
             }`}
@@ -178,7 +156,10 @@ const AdminBlogEditor: React.FC<Props> = ({
         onChange={e =>
           setPost(p => ({
             ...p,
-            slugs: { ...p.slugs, [lang]: normalizeSlug(e.target.value) },
+            slugs: {
+              ...p.slugs,
+              [lang]: normalizeSlug(e.target.value),
+            },
           }))
         }
         className="w-full p-3 border rounded-xl"
@@ -191,52 +172,28 @@ const AdminBlogEditor: React.FC<Props> = ({
         onChange={e =>
           setPost(p => ({
             ...p,
-            title: { ...p.title, [lang]: e.target.value },
+            title: {
+              ...p.title,
+              [lang]: e.target.value,
+            },
           }))
         }
         className="w-full p-3 border rounded-xl"
         placeholder="Título"
       />
 
-      {/* TOOLBAR */}
-      <div className="flex gap-2 border rounded-xl p-2 bg-gray-50 text-sm">
-        <button onClick={() => document.execCommand('bold')}>B</button>
-        <button onClick={() => insertHTML('<h2>Título</h2>')}>H2</button>
-        <button onClick={() => insertHTML('<h3>Subtítulo</h3>')}>H3</button>
-        <button
-          onClick={() =>
-            insertHTML('<ul><li>Elemento de lista</li></ul>')
-          }
-        >
-          • Lista
-        </button>
-        <button
-          onClick={() =>
-            insertHTML('<ol><li>Elemento numerado</li></ol>')
-          }
-        >
-          1. Lista
-        </button>
-        <button
-          onClick={() => {
-            const url = prompt('URL del enlace')
-            if (url) {
-              insertHTML(`<a href="${url}" target="_blank">${url}</a>`)
-            }
-          }}
-        >
-          🔗
-        </button>
-      </div>
-
-      {/* EDITOR */}
-      <div
-        ref={editorRef}
-        contentEditable
-        className="border p-4 rounded-xl min-h-[260px] focus:outline-none prose max-w-none"
-        dangerouslySetInnerHTML={{
-          __html: post.content[lang] || '',
-        }}
+      {/* EDITOR REAL */}
+      <RichTextEditor
+        value={post.content[lang] || ''}
+        onChange={html =>
+          setPost(p => ({
+            ...p,
+            content: {
+              ...p.content,
+              [lang]: html,
+            },
+          }))
+        }
       />
 
       <div className="flex gap-4">

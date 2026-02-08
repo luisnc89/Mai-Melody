@@ -10,10 +10,23 @@ interface Props {
   onChange: (html: string) => void
 }
 
+/**
+ * 🧹 Limpia HTML generado por TipTap
+ * - Elimina <p></p> vacíos
+ * - Mantiene semántica correcta
+ * - Ideal para CMS / blog
+ */
+const cleanHtml = (html: string) => {
+  return html
+    .replace(/<p>\s*<\/p>/g, '')
+    .replace(/\n+/g, '\n')
+    .trim()
+}
+
 const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
   /**
    * Guarda el último HTML emitido por TipTap
-   * para evitar bucles infinitos
+   * para evitar bucles infinitos al sincronizar
    */
   const lastHtml = useRef<string>('')
 
@@ -33,16 +46,17 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML()
-      lastHtml.current = html
-      onChange(html)
+      const rawHtml = editor.getHTML()
+      const cleanedHtml = cleanHtml(rawHtml)
+
+      lastHtml.current = cleanedHtml
+      onChange(cleanedHtml)
     },
   })
 
   /**
-   * 🔁 Sincronización REAL
-   * Solo se actualiza el editor si el HTML externo
-   * es distinto al último que emitió TipTap
+   * 🔁 Sincronización EXTERNA → TipTap
+   * Solo actualiza si el HTML realmente cambió
    */
   useEffect(() => {
     if (!editor) return

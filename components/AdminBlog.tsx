@@ -1,181 +1,138 @@
 import React, { useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabase'
-import AdminBlogEditor from './AdminBlogEditor'
+import { Language } from '../types'
+import { translations } from '../translations'
 
-type Mode = 'list' | 'edit'
+const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it']
 
-const AdminBlog: React.FC = () => {
-  const [posts, setPosts] = useState<any[]>([])
-  const [mode, setMode] = useState<Mode>('list')
-  const [editingPost, setEditingPost] = useState<any | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+interface BlogPostData {
+  id: string
+  created_at: string
+  image?: string | null
+  title: Record<Language, string>
+  content: Record<Language, string>
+}
 
-  /* =====================
-     LOAD POSTS
-  ===================== */
-  const loadPosts = async () => {
-    setError(null)
-    setLoading(true)
+const BlogPost: React.FC = () => {
+  const { lang, slug } = useParams<{ lang: Language; slug: string }>()
+  const navigate = useNavigate()
 
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .order('created_at', { ascending: false })
+  const language: Language =
+    lang && SUPPORTED_LANGUAGES.includes(lang) ? lang : 'es'
 
-    if (error) {
-      console.error('LOAD POSTS ERROR:', error)
-      setError(error.message)
-      setLoading(false)
-      return
-    }
+  const t = translations[language]
 
-    setPosts(data || [])
-    setLoading(false)
-  }
+  const [post, setPost] = useState<BlogPostData | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadPosts()
-  }, [])
+    const loadPost = async () => {
+      const { data } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq(`slugs->>${language}`, slug)
+        .single()
 
-  /* =====================
-     ACTIONS
-  ===================== */
-  const handleNew = () => {
-    setEditingPost(null)
-    setMode('edit')
-  }
-
-  const handleEdit = (post: any) => {
-    setEditingPost(post)
-    setMode('edit')
-  }
-
-  /* =====================
-     SAVE POST
-  ===================== */
-  const handleSave = async (post: any) => {
-    setError(null)
-    setLoading(true)
-
-    try {
-      const { data: sessionData, error: sessionError } =
-        await supabase.auth.getSession()
-
-      if (sessionError) throw sessionError
-      if (!sessionData.session) {
-        throw new Error('No hay sesión activa en Supabase')
-      }
-
-      const payload = {
-        slugs: post.slugs,
-        image: post.image,
-        title: post.title,
-        content: post.content,
-      }
-
-      if (post.id) {
-        const { error } = await supabase
-          .from('blog_posts')
-          .update(payload)
-          .eq('id', post.id)
-
-        if (error) throw error
-      } else {
-        const { error } = await supabase
-          .from('blog_posts')
-          .insert(payload)
-
-        if (error) throw error
-      }
-
-      setMode('list')
-      loadPosts()
-    } catch (err: any) {
-      console.error('SAVE BLOG ERROR:', err)
-      setError(err.message || 'Error guardando el post')
-    } finally {
+      setPost(data ?? null)
       setLoading(false)
     }
-  }
 
-  /* =====================
-     EDIT MODE
-  ===================== */
-  if (mode === 'edit') {
+    loadPost()
+  }, [slug, language])
+
+  if (loading) {
     return (
-      <AdminBlogEditor
-        initialPost={editingPost ?? undefined}
-        onCancel={() => setMode('list')}
-        onSave={handleSave}
-      />
+      <p className="text-center py-32 text-gray-400 italic">
+        Cargando artículo…
+      </p>
     )
   }
 
-  /* =====================
-     LIST MODE
-  ===================== */
+  if (!post) {
+    return (
+      <p className="text-center py-32 text-gray-400 italic">
+        Artículo no encontrado
+      </p>
+    )
+  }
+
+  const title = post.title[language] || post.title.es
+  const content = post.content[language] || post.content.es
+
   return (
-    <div className="bg-white p-8 rounded-3xl shadow space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-serif">Gestión de Blog</h2>
+    <div className="pt-32 pb-24 px-4 min-h-screen bg-warm-white">
+      <article className="max-w-3xl mx-auto space-y-12">
 
+        {/* Volver */}
         <button
-          onClick={handleNew}
-          className="bg-gray-900 text-white px-5 py-2 rounded-full text-sm"
+          onClick={() => navigate(`/${language}/blog`)}
+          className="text-sm text-gray-500 hover:text-violet-600 font-semibold"
         >
-          + Nuevo post
+          ← {t.blog_back}
         </button>
-      </div>
 
-      {error && (
-        <div className="bg-red-100 text-red-700 p-4 rounded-xl">
-          {error}
-        </div>
-      )}
+        {/* Cabecera */}
+        <header className="text-center space-y-4">
+          <p className="text-violet-500 font-bold text-xs uppercase tracking-wide">
+            {new Date(post.created_at).toLocaleDateString(language === 'en' ? 'en-GB' : 'es-ES')}
+          </p>
 
-      {loading && (
-        <p className="text-gray-500 italic">Cargando posts…</p>
-      )}
+          <h1 className="text-4xl md:text-5xl font-serif leading-tight">
+            {title}
+          </h1>
+        </header>
 
-      {!loading && posts.length === 0 && (
-        <p className="text-gray-500 italic">No hay posts todavía.</p>
-      )}
+        {/* Imagen */}
+        {post.image && (
+          <div className="rounded-3xl overflow-hidden shadow-xl">
+            <img
+              src={post.image}
+              alt={title}
+              className="w-full object-cover"
+            />
+          </div>
+        )}
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {posts.map(post => {
-          const title = post.title?.es || 'Sin título'
+        {/* CONTENIDO — 🔥 AQUÍ ESTÁ LA CLAVE */}
+        <div
+          className="
+            text-base leading-relaxed text-gray-800
 
-          return (
-            <div key={post.id} className="rounded-2xl overflow-hidden shadow">
-              {post.image && (
-                <img
-                  src={post.image}
-                  className="h-40 w-full object-cover"
-                  alt={title}
-                />
-              )}
+            [&_p]:my-5
 
-              <div className="p-4">
-                <h3 className="font-bold">{title}</h3>
+            [&_h2]:text-3xl
+            [&_h2]:font-serif
+            [&_h2]:font-bold
+            [&_h2]:mt-12
+            [&_h2]:mb-4
 
-                <p className="text-xs text-gray-400">
-                  {new Date(post.created_at).toLocaleDateString('es-ES')}
-                </p>
+            [&_h3]:text-2xl
+            [&_h3]:font-serif
+            [&_h3]:font-semibold
+            [&_h3]:mt-8
+            [&_h3]:mb-3
 
-                <button
-                  onClick={() => handleEdit(post)}
-                  className="text-blue-600 font-semibold mt-2"
-                >
-                  Editar
-                </button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            [&_ul]:list-disc
+            [&_ul]:pl-6
+            [&_ul]:my-5
+
+            [&_ol]:list-decimal
+            [&_ol]:pl-6
+            [&_ol]:my-5
+
+            [&_li]:my-1
+
+            [&_strong]:text-gray-900
+            [&_a]:text-violet-600
+            [&_a]:font-semibold
+            hover:[&_a]:underline
+          "
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      </article>
     </div>
   )
 }
 
-export default AdminBlog
+export default BlogPost

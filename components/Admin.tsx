@@ -367,12 +367,23 @@ useEffect(() => {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {orderPhotos.map(photo => (
-            <img
-              key={photo.id}
-              src={photo.file_path}
-              className="rounded-xl object-cover border"
-            />
-          ))}
+  <div key={photo.id} className="space-y-2">
+    <img
+      src={photo.file_path}
+      className="rounded-xl object-cover border w-full"
+    />
+
+    <a
+      href={photo.file_path}
+      download
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-block text-xs font-semibold text-gray-700 underline"
+    >
+      Descargar imagen
+    </a>
+  </div>
+))}
         </div>
       )}
     </div>

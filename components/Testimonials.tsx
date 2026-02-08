@@ -18,8 +18,7 @@ const ITEMS_DESKTOP = 6
 const ITEMS_MOBILE = 4
 
 /**
- * 🎁 Packs reales de MaiMelody
- * (lo que se guarda en BD → lo que se muestra en la UI)
+ * 🎁 Packs reales (valor en BD → texto visible)
  */
 const PACK_LABELS: Record<string, string> = {
   basic: 'Pack Básico',
@@ -157,7 +156,6 @@ const Testimonials: React.FC<{ lang: Language }> = ({ lang }) => {
                 </span>
               </div>
 
-              {/* AUDIO */}
               <audio
                 controls
                 src={t.song_url}

@@ -40,11 +40,10 @@ interface Testimonial {
 const LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
 const PACKS = [
-  'Básico',
-  'Premium',
-  'Pareja',
-  'Cumpleaños',
-  'Memorial',
+  { value: '', label: 'Pack (opcional)' },
+  { value: 'basic', label: 'Pack Básico' },
+  { value: 'emotion', label: 'Pack Emoción' },
+  { value: 'artistic', label: 'Pack Artístico' },
 ];
 
 /* =====================
@@ -433,17 +432,18 @@ useEffect(() => {
               </select>
 
               <select
-                className="border rounded-xl px-3 py-2"
-                value={form.pack}
-                onChange={e =>
-                  setForm({ ...form, pack: e.target.value })
-                }
-              >
-                <option value="">Pack (opcional)</option>
-                {PACKS.map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
+  className="border rounded-xl px-3 py-2"
+  value={form.pack}
+  onChange={e =>
+    setForm({ ...form, pack: e.target.value })
+  }
+>
+  {PACKS.map(p => (
+    <option key={p.value} value={p.value}>
+      {p.label}
+    </option>
+  ))}
+</select>
             </div>
 
             <label className="text-sm font-semibold">Canción del cliente</label>

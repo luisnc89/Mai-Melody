@@ -29,7 +29,48 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
         placeholder: 'Escribe aquí el contenido del post…',
       }),
     ],
+
     content: value,
+
+    /**
+     * ✅ ESTE ES EL BLOQUE NUEVO
+     * Arregla el pegar texto plano (ChatGPT, emails, etc.)
+     */
+    editorProps: {
+      handlePaste(view, event) {
+        const clipboardData = event.clipboardData
+        if (!clipboardData) return false
+
+        const html = clipboardData.getData('text/html')
+        const text = clipboardData.getData('text/plain')
+
+        // Si hay HTML real, que TipTap lo gestione
+        if (html) return false
+
+        // Texto plano → convertir saltos en <p>
+        if (text) {
+          event.preventDefault()
+
+          const paragraphs = text
+            .split(/\n\s*\n/)
+            .map(p => p.trim())
+            .filter(Boolean)
+            .map(p => `<p>${p.replace(/\n/g, '<br />')}</p>`)
+            .join('')
+
+          editor
+            ?.chain()
+            .focus()
+            .insertContent(paragraphs)
+            .run()
+
+          return true
+        }
+
+        return false
+      },
+    },
+
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
@@ -69,8 +110,7 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
     editor.chain().focus().setLink({ href: url }).run()
   }
 
-  const btn =
-    'px-2 py-1 rounded text-sm border transition'
+  const btn = 'px-2 py-1 rounded text-sm border transition'
   const active = 'bg-gray-900 text-white border-gray-900'
   const inactive =
     'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'

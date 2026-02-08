@@ -117,6 +117,15 @@ export const translations = {
 
   quote: '"La música empieza donde acaban las palabras."',
 
+    /* ✅ GRACIAS / CONFIRMACIÓN DE PAGO */
+  thanks_title: 'Gracias por tu pedido',
+  thanks_heading: '¡Pago confirmado!',
+  thanks_confirm: 'Hemos recibido tu pedido correctamente.',
+  thanks_next_steps:
+    'En un plazo máximo de 24 horas recibirás un email con tu canción personalizada.',
+  thanks_contact:
+    'Si tienes cualquier duda, puedes escribirnos directamente respondiendo al email.',
+
   pricing_title: 'Nuestros Packs',
   pricing_desc: 'Elige tu pack y rellena el formulario. Solo pagarás al final del proceso.',
   pricing_popular: 'Recomendado 🦋',
@@ -305,6 +314,15 @@ en: {
   pay_and_send: 'Pay and Send',
 
   quote: '"Music starts where words end."',
+
+   /* ✅ THANK YOU / PAYMENT CONFIRMATION */
+  thanks_title: 'Thank you for your order',
+  thanks_heading: 'Payment confirmed!',
+  thanks_confirm: 'We have successfully received your order.',
+  thanks_next_steps:
+    'Within the next 24 hours, you will receive an email with your personalized song.',
+  thanks_contact:
+    'If you have any questions, feel free to reply directly to the email we send you.',
 
   pricing_title: 'Our Packs',
   pricing_desc: 'Choose your pack and fill out the form. You will only pay at the end of the process.',
@@ -495,6 +513,15 @@ ca: {
 
   quote: '"La música comença on acaben les paraules."',
 
+  /* ✅ GRÀCIES / CONFIRMACIÓ DE PAGAMENT */
+  thanks_title: 'Gràcies per la teva comanda',
+  thanks_heading: 'Pagament confirmat!',
+  thanks_confirm: 'Hem rebut correctament la teva comanda.',
+  thanks_next_steps:
+    'En un termini màxim de 24 hores rebràs un correu amb la teva cançó personalitzada.',
+  thanks_contact:
+    'Si tens qualsevol dubte, pots respondre directament al correu electrònic.',
+
   pricing_title: 'Els Nostres Packs',
   pricing_desc: 'Tria el teu pack i omple el formulari. Només pagaràs al final del procés.',
   pricing_popular: 'Recomanat 🦋',
@@ -684,6 +711,15 @@ fr: {
 
   quote: '"La musique commence là où les mots s’arrêtent."',
 
+  /* ✅ MERCI / CONFIRMATION DE PAIEMENT */
+  thanks_title: 'Merci pour votre commande',
+  thanks_heading: 'Paiement confirmé !',
+  thanks_confirm: 'Nous avons bien reçu votre commande.',
+  thanks_next_steps:
+    'Vous recevrez votre chanson personnalisée par email dans un délai maximum de 24 heures.',
+  thanks_contact:
+    'Si vous avez la moindre question, vous pouvez répondre directement à l’email.',
+
   pricing_title: 'Nos Packs',
   pricing_desc: 'Choisissez votre pack et remplissez le formulaire. Le paiement se fait à la fin.',
   pricing_popular: 'Recommandé 🦋',
@@ -872,6 +908,15 @@ it: {
   pay_and_send: 'Paga e Invia',
 
   quote: '"La musica inizia dove finiscono le parole."',
+
+  /* ✅ GRAZIE / CONFERMA PAGAMENTO */
+  thanks_title: 'Grazie per il tuo ordine',
+  thanks_heading: 'Pagamento confermato!',
+  thanks_confirm: 'Abbiamo ricevuto correttamente il tuo ordine.',
+  thanks_next_steps:
+    'Entro un massimo di 24 ore riceverai un’email con la tua canzone personalizzata.',
+  thanks_contact:
+    'Per qualsiasi domanda, puoi rispondere direttamente all’email che riceverai.',
 
   pricing_title: 'I Nostri Pacchetti',
   pricing_desc: 'Scegli il tuo pacchetto e compila il modulo. Pagherai solo alla fine.',

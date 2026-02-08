@@ -1,55 +1,69 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 declare global {
   interface Window {
-    paypal?: any;
-    gtag?: (...args: any[]) => void;
+    paypal?: any
+    gtag?: (...args: any[]) => void
   }
 }
 
 interface PayPalButtonProps {
-  amount: number;
-  onSuccess: () => void;
+  amount: number
+  language: 'es' | 'en' | 'ca' | 'fr' | 'it'
+  onSuccess?: () => void
 }
 
-const PayPalButton: React.FC<PayPalButtonProps> = ({ amount, onSuccess }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const renderedRef = useRef(false);
+const THANKS_ROUTES: Record<PayPalButtonProps['language'], string> = {
+  es: '/es/gracias',
+  en: '/en/thanks',
+  ca: '/ca/gracies',
+  fr: '/fr/merci',
+  it: '/it/grazie',
+}
+
+const PayPalButton: React.FC<PayPalButtonProps> = ({
+  amount,
+  language,
+  onSuccess,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const renderedRef = useRef(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    if (renderedRef.current) return;
-    if (!containerRef.current) return;
+    if (renderedRef.current) return
+    if (!containerRef.current) return
 
-    const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+    const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID
 
     if (!clientId) {
-      console.error('❌ Missing VITE_PAYPAL_CLIENT_ID');
-      return;
+      console.error('❌ Missing VITE_PAYPAL_CLIENT_ID')
+      return
     }
 
     const loadPayPalScript = () =>
       new Promise<void>((resolve, reject) => {
-        // Si ya existe, no lo volvemos a cargar
         if (document.getElementById('paypal-sdk')) {
-          resolve();
-          return;
+          resolve()
+          return
         }
 
-        const script = document.createElement('script');
-        script.id = 'paypal-sdk';
-        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=EUR&intent=capture`;
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('PayPal SDK failed to load'));
-        document.body.appendChild(script);
-      });
+        const script = document.createElement('script')
+        script.id = 'paypal-sdk'
+        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=EUR&intent=capture`
+        script.async = true
+        script.onload = () => resolve()
+        script.onerror = () => reject(new Error('PayPal SDK failed to load'))
+        document.body.appendChild(script)
+      })
 
     const renderButton = async () => {
       if (!window.paypal) {
-        await loadPayPalScript();
+        await loadPayPalScript()
       }
 
-      if (!window.paypal || !containerRef.current) return;
+      if (!window.paypal || !containerRef.current) return
 
       window.paypal
         .Buttons({
@@ -70,41 +84,46 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({ amount, onSuccess }) => {
                   },
                 },
               ],
-            });
+            })
           },
 
           onApprove: async (_data: any, actions: any) => {
             try {
-              await actions.order.capture();
+              await actions.order.capture()
 
               if (window.gtag) {
-                window.gtag('event', 'paypal_approved', {
+                window.gtag('event', 'purchase', {
                   event_category: 'payment',
                   event_label: 'paypal',
                   value: amount,
                   currency: 'EUR',
-                });
+                })
               }
 
-              onSuccess();
+              if (onSuccess) {
+                onSuccess()
+              }
+
+              const thanksUrl = THANKS_ROUTES[language]
+              navigate(thanksUrl, { replace: true })
             } catch (err) {
-              console.error('❌ Error capturing PayPal order:', err);
+              console.error('❌ Error capturing PayPal order:', err)
             }
           },
 
           onError: (err: any) => {
-            console.error('❌ PayPal error:', err);
+            console.error('❌ PayPal error:', err)
           },
         })
-        .render(containerRef.current);
+        .render(containerRef.current)
 
-      renderedRef.current = true;
-    };
+      renderedRef.current = true
+    }
 
-    renderButton();
-  }, [amount, onSuccess]);
+    renderButton()
+  }, [amount, language, navigate, onSuccess])
 
-  return <div ref={containerRef} />;
-};
+  return <div ref={containerRef} />
+}
 
-export default PayPalButton;
+export default PayPalButton

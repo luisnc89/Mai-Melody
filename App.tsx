@@ -16,7 +16,8 @@ import Blog from './components/Blog'
 import BlogPostDetail from './components/BlogPost'
 import Login from './components/Login'
 import Admin from './components/Admin'
-import AdminRoute from './components/AdminRoute' // ✅ FIX AQUÍ
+import AdminRoute from './components/AdminRoute'
+import ThanksPage from './components/ThanksPage'
 
 import { Language } from './types'
 import { ROUTE_SLUGS } from './routes/slugs'
@@ -118,6 +119,13 @@ const LanguageLayout: React.FC = () => {
             path={`${ROUTE_SLUGS.blog[language]}/:slug`}
             element={<BlogPostDetail />}
           />
+
+          {/* ================= PÁGINAS GRACIAS (POST-PAGO) ================= */}
+          <Route path="gracias" element={<ThanksPage />} />
+          <Route path="thanks" element={<ThanksPage />} />
+          <Route path="gracies" element={<ThanksPage />} />
+          <Route path="merci" element={<ThanksPage />} />
+          <Route path="grazie" element={<ThanksPage />} />
 
           {/* ================= LOGIN ADMIN ================= */}
           <Route

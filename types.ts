@@ -28,8 +28,46 @@ export type PackType = 'basico' | 'emocion' | 'artistico';
 
 
 /* =========================
-   🎨 ESTILOS DE IMAGEN (PACK ARTÍSTICO)
-   ⚠️ Valores internos estables (NO traducidos)
+   📦 CONFIGURACIÓN DE PACKS
+   (Fuente única de verdad)
+========================= */
+
+export interface PackFeatures {
+  songs: number;               // Nº de canciones incluidas
+  pdfLyrics: boolean;          // Letra en PDF
+  video: boolean;              // Incluye vídeo
+  maxPhotos: number;           // Nº máximo de imágenes
+  artisticStylesPerPhoto: boolean; // Elegir estilo por foto
+}
+
+export const PACK_FEATURES: Record<PackType, PackFeatures> = {
+  basico: {
+    songs: 2,
+    pdfLyrics: true,
+    video: false,
+    maxPhotos: 0,
+    artisticStylesPerPhoto: false,
+  },
+  emocion: {
+    songs: 2,
+    pdfLyrics: true,
+    video: true,
+    maxPhotos: 15,
+    artisticStylesPerPhoto: false,
+  },
+  artistico: {
+    songs: 2,
+    pdfLyrics: true,
+    video: true,
+    maxPhotos: 15,
+    artisticStylesPerPhoto: true,
+  },
+};
+
+
+/* =========================
+   🎨 ESTILOS DE IMAGEN
+   (PACK ARTÍSTICO)
 ========================= */
 
 export type ImageStyle =
@@ -47,12 +85,14 @@ export type ImageStyle =
    📌 ESTADO DEL PEDIDO
 ========================= */
 
-export type OrderStatus = 'pendiente' | 'en_proceso' | 'completado';
+export type OrderStatus =
+  | 'pendiente'
+  | 'en_proceso'
+  | 'completado';
 
 
 /* =========================
    🎵 ESTILO MUSICAL
-   ✅ ALINEADO CON CreationForm.tsx
 ========================= */
 
 export type MusicalStyle =
@@ -68,7 +108,6 @@ export type MusicalStyle =
 
 /* =========================
    🎤 VOZ
-   ✅ ALINEADO CON CreationForm.tsx
 ========================= */
 
 export type VoiceType =
@@ -103,19 +142,33 @@ export interface SongOrder {
   pack: PackType;
   language: Language;
 
+  /* 🎵 Canción */
   title: string;
   story: string;
   occasion: string;
 
   from: string;
   to: string;
-
   email: string;
 
   musicalStyle: MusicalStyle;
   voice: VoiceType;
 
+  /* 📸 Contenido multimedia */
   photos: string[];
+
+  /**
+   * Solo para PACK ARTÍSTICO
+   * El índice coincide con photos[]
+   */
+  imageStyles?: ImageStyle[];
+
+  /**
+   * Metadatos derivados del pack
+   * (se guardan para evitar ambigüedades futuras)
+   */
+  includesVideo: boolean;
+  includesPdfLyrics: boolean;
 
   status: OrderStatus;
   createdAt: string;
@@ -123,8 +176,7 @@ export interface SongOrder {
 
 
 /* =========================
-   📊 GOOGLE ANALYTICS (GLOBAL)
-   SOLO PARA TYPESCRIPT
+   📊 GOOGLE ANALYTICS
 ========================= */
 
 export {};

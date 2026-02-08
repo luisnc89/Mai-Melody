@@ -7,6 +7,8 @@ import {
   SongOrder,
   MusicalStyle,
   VoiceType,
+  ImageStyle,
+  PACK_FEATURES,
 } from '../types';
 
 import { translations } from '../translations';
@@ -21,7 +23,7 @@ import { getPackFromSlug } from '../routes/packSlugs';
 const SUPPORTED_LANGUAGES: Language[] = ['es', 'en', 'ca', 'fr', 'it'];
 
 /* =========================
-   🎵 Estilos musicales (valores técnicos)
+   🎵 Estilos musicales
 ========================= */
 const MUSICAL_STYLES: { value: MusicalStyle; labelKey: string }[] = [
   { value: 'pop', labelKey: 'form_music_pop' },
@@ -35,7 +37,7 @@ const MUSICAL_STYLES: { value: MusicalStyle; labelKey: string }[] = [
 ];
 
 /* =========================
-   🎤 Voces (valores técnicos)
+   🎤 Voces
 ========================= */
 const VOICES: { value: VoiceType; labelKey: string }[] = [
   { value: 'male', labelKey: 'form_voice_male' },
@@ -43,6 +45,34 @@ const VOICES: { value: VoiceType; labelKey: string }[] = [
   { value: 'kids', labelKey: 'form_voice_kids' },
   { value: 'indifferent', labelKey: 'form_voice_indifferent' },
 ];
+
+/* =========================
+   🎨 Estilos de imagen
+========================= */
+const IMAGE_STYLES: ImageStyle[] = [
+  'original',
+  'watercolor',
+  'anime',
+  'cartoon',
+  'pencil',
+  'comic',
+  'bw',
+  'animation_3d',
+];
+
+/* =========================
+   🎨 Traducciones de estilos
+========================= */
+const IMAGE_STYLE_LABEL_KEYS: Record<ImageStyle, string> = {
+  original: 'artistic_original_label',
+  watercolor: 'style_watercolor',
+  anime: 'style_anime',
+  cartoon: 'style_cartoon',
+  pencil: 'style_pencil',
+  comic: 'style_comic',
+  bw: 'style_bw_art',
+  animation_3d: 'style_animation_3d',
+};
 
 const CreationForm: React.FC = () => {
   const navigate = useNavigate();
@@ -85,6 +115,9 @@ const CreationForm: React.FC = () => {
     deliveryEmail: '',
   });
 
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [imageStyles, setImageStyles] = useState<ImageStyle[]>([]);
+
   const [showPayment, setShowPayment] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
 
@@ -105,7 +138,7 @@ const CreationForm: React.FC = () => {
   };
 
   /* =========================
-     🔧 HANDLER CORRECTO (CLAVE)
+     🔧 Handlers
   ========================= */
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -127,6 +160,27 @@ const CreationForm: React.FC = () => {
     });
   };
 
+  const handlePhotosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+
+    const files = Array.from(e.target.files).slice(
+      0,
+      PACK_FEATURES[selectedPack].maxPhotos
+    );
+
+    setPhotos(files);
+
+    if (PACK_FEATURES[selectedPack].artisticStylesPerPhoto) {
+      setImageStyles(files.map(() => 'original'));
+    }
+  };
+
+  const handleImageStyleChange = (index: number, style: ImageStyle) => {
+    setImageStyles(prev =>
+      prev.map((s, i) => (i === index ? style : s))
+    );
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setShowPayment(true);
@@ -136,6 +190,8 @@ const CreationForm: React.FC = () => {
      📦 Crear pedido
   ========================= */
   const createOrder = (status: SongOrder['status']) => {
+    const packFeatures = PACK_FEATURES[selectedPack];
+
     const order: SongOrder = {
       id: crypto.randomUUID(),
 
@@ -153,7 +209,14 @@ const CreationForm: React.FC = () => {
       musicalStyle: formData.musicalStyle,
       voice: formData.voice,
 
-      photos: [],
+      photos: photos.map(p => p.name),
+      imageStyles: packFeatures.artisticStylesPerPhoto
+        ? imageStyles
+        : undefined,
+
+      includesVideo: packFeatures.video,
+      includesPdfLyrics: packFeatures.pdfLyrics,
+
       status,
       createdAt: new Date().toISOString(),
     };
@@ -161,6 +224,37 @@ const CreationForm: React.FC = () => {
     saveOrder(order);
     setOrderComplete(true);
   };
+
+const submitOrderToBackend = async () => {
+  const data = new FormData();
+
+  data.append('email', formData.deliveryEmail);
+  data.append('pack', selectedPack);
+  data.append('title', formData.songTitle);
+  data.append('from_name', formData.sender);
+  data.append('to_name', formData.recipient);
+  data.append('story', formData.memories);
+  data.append('occasion', formData.occasion);
+  data.append('musicalStyle', formData.musicalStyle);
+  data.append('voice', formData.voice);
+
+  photos.forEach(photo => {
+    data.append('photos', photo);
+  });
+
+  if (selectedPack === 'artistico') {
+    data.append('imageStyles', JSON.stringify(imageStyles));
+  }
+
+  const res = await fetch('/api/create-order', {
+    method: 'POST',
+    body: data,
+  });
+
+  if (!res.ok) {
+    throw new Error('Error creating order');
+  }
+};
 
   if (orderComplete) {
     return (
@@ -180,7 +274,7 @@ const CreationForm: React.FC = () => {
           onClick={() =>
             navigate(`/${language}/${ROUTE_SLUGS.packs[language]}`)
           }
-          className="text-sm font-bold text-violet-600 hover:underline"
+          className="inline-flex items-center gap-2 bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-full text-sm font-semibold text-violet-600"
         >
           ← {t.back_to_packs}
         </button>
@@ -223,33 +317,109 @@ const CreationForm: React.FC = () => {
             required
           />
 
-          {/* 🎵 Estilo musical */}
-          <select
-            name="musicalStyle"
-            value={formData.musicalStyle}
-            onChange={handleInputChange}
-            className="w-full bg-gray-50 rounded-2xl p-4"
-          >
-            {MUSICAL_STYLES.map(s => (
-              <option key={s.value} value={s.value}>
-                {t[s.labelKey]}
-              </option>
-            ))}
-          </select>
+          {(selectedPack === 'emocion' || selectedPack === 'artistico') && (
+            <div className="space-y-4">
+              <input
+                id="photos-input"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotosChange}
+                className="sr-only"
+              />
 
-          {/* 🎤 Voz */}
-          <select
-            name="voice"
-            value={formData.voice}
-            onChange={handleInputChange}
-            className="w-full bg-gray-50 rounded-2xl p-4"
-          >
-            {VOICES.map(v => (
-              <option key={v.value} value={v.value}>
-                {t[v.labelKey]}
-              </option>
-            ))}
-          </select>
+              <label
+                htmlFor="photos-input"
+                className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl font-semibold text-sm cursor-pointer
+                bg-gradient-to-r from-violet-500 via-pink-500 to-orange-400
+                text-white shadow-lg transition-all duration-300
+                hover:scale-[1.03] hover:shadow-xl"
+              >
+                📷 {t.form_upload_photos}
+              </label>
+
+              {photos.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  {t.form_photos_selected.replace(
+                    '{{count}}',
+                    String(photos.length)
+                  )}
+                </p>
+              )}
+
+              {selectedPack === 'artistico' && photos.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {photos.map((photo, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 rounded-2xl p-4 space-y-3"
+                    >
+                      <img
+                        src={URL.createObjectURL(photo)}
+                        alt=""
+                        className="w-full h-40 object-cover rounded-xl"
+                      />
+
+                      <select
+                        value={imageStyles[index]}
+                        onChange={e =>
+                          handleImageStyleChange(
+                            index,
+                            e.target.value as ImageStyle
+                          )
+                        }
+                        className="w-full bg-white rounded-xl p-2"
+                      >
+                        {IMAGE_STYLES.map(style => (
+                          <option key={style} value={style}>
+                            {t[IMAGE_STYLE_LABEL_KEYS[style]]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">
+                {t.form_music_style_label}
+              </label>
+              <select
+                name="musicalStyle"
+                value={formData.musicalStyle}
+                onChange={handleInputChange}
+                className="w-full bg-gray-50 rounded-2xl p-4"
+              >
+                {MUSICAL_STYLES.map(s => (
+                  <option key={s.value} value={s.value}>
+                    {t[s.labelKey]}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">
+                {t.form_voice_label}
+              </label>
+              <select
+                name="voice"
+                value={formData.voice}
+                onChange={handleInputChange}
+                className="w-full bg-gray-50 rounded-2xl p-4"
+              >
+                {VOICES.map(v => (
+                  <option key={v.value} value={v.value}>
+                    {t[v.labelKey]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           <input
             type="email"
@@ -278,9 +448,17 @@ const CreationForm: React.FC = () => {
             </p>
 
             <PayPalButton
-              amount={getPriceByPack()}
-              onSuccess={() => createOrder('pendiente')}
-            />
+  amount={getPriceByPack()}
+  onSuccess={async () => {
+    try {
+      await submitOrderToBackend();
+      setOrderComplete(true);
+    } catch (e) {
+      alert('Error al crear el pedido');
+      console.error(e);
+    }
+  }}
+/>
           </div>
         )}
       </div>

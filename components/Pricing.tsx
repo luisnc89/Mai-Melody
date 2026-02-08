@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Language } from '../types';
+import { Language, PackType } from '../types';
 import { translations } from '../translations';
 import { ROUTE_SLUGS, PACK_SLUGS } from '../routes/slugs';
 
@@ -15,15 +15,17 @@ const Pricing: React.FC = () => {
 
   const t = translations[language];
 
-  const goToPack = (pack: 'basico' | 'emocion' | 'artistico') => {
-    navigate(`/${language}/${ROUTE_SLUGS.create[language]}/${PACK_SLUGS[pack][language]}`);
+  const goToPack = (pack: PackType) => {
+    navigate(
+      `/${language}/${ROUTE_SLUGS.create[language]}/${PACK_SLUGS[pack][language]}`
+    );
   };
 
   return (
     <section className="py-28 px-4 bg-warm-white">
       <div className="max-w-7xl mx-auto">
 
-        {/* TÍTULO */}
+        {/* ================= TÍTULO ================= */}
         <div className="text-center mb-20 space-y-4">
           <h2 className="text-4xl lg:text-5xl font-serif text-gray-900">
             {t.pricing_title}
@@ -33,10 +35,10 @@ const Pricing: React.FC = () => {
           </p>
         </div>
 
-        {/* PACKS */}
+        {/* ================= PACKS ================= */}
         <div className="grid lg:grid-cols-3 gap-10 items-stretch">
 
-          {/* PACK BÁSICO */}
+          {/* ========== PACK BÁSICO ========== */}
           <div className="bg-white rounded-[2.5rem] p-10 shadow-xl flex flex-col">
             <h3 className="text-2xl font-serif mb-4">
               {t.pack_basico}
@@ -52,7 +54,8 @@ const Pricing: React.FC = () => {
             <ul className="space-y-3 text-gray-700 mb-8">
               <li>✓ {t.feature_2songs}</li>
               <li>✓ {t.delivery_24}</li>
-              <li>✓ {t.feature_audio}</li>
+              <li>✓ Letra de la canción en PDF</li>
+              <li>✓ Audio digital en alta calidad</li>
             </ul>
 
             <button
@@ -63,7 +66,7 @@ const Pricing: React.FC = () => {
             </button>
           </div>
 
-          {/* PACK EMOCIÓN (DESTACADO) */}
+          {/* ========== PACK EMOCIÓN (DESTACADO) ========== */}
           <div className="relative bg-white rounded-[2.5rem] p-10 shadow-2xl border-2 border-violet-400 flex flex-col scale-[1.03]">
 
             {/* BADGE */}
@@ -85,9 +88,10 @@ const Pricing: React.FC = () => {
             </div>
 
             <ul className="space-y-3 text-gray-700 mb-8">
-              <li>✓ {t.feature_2songs}</li>
-              <li>✓ {t.feature_video}</li>
-              <li>✓ {t.delivery_72}</li>
+              <li>✓ Todo lo incluido en el Pack Básico</li>
+              <li>✓ Videomontaje con la canción</li>
+              <li>✓ Hasta 15 imágenes aportadas por ti</li>
+              <li>✓ Entrega en 72 horas</li>
             </ul>
 
             <button
@@ -98,7 +102,7 @@ const Pricing: React.FC = () => {
             </button>
           </div>
 
-          {/* PACK ARTÍSTICO */}
+          {/* ========== PACK ARTÍSTICO ========== */}
           <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-gold flex flex-col">
             <h3 className="text-2xl font-serif mb-4">
               {t.pack_artistico}
@@ -112,9 +116,10 @@ const Pricing: React.FC = () => {
             </div>
 
             <ul className="space-y-3 text-gray-700 mb-8">
-              <li>✓ {t.feature_2songs}</li>
-              <li>✓ {t.feature_artistic}</li>
-              <li>✓ {t.delivery_72}</li>
+              <li>✓ Todo lo incluido en el Pack Emoción</li>
+              <li>✓ Selección de estilo artístico por imagen</li>
+              <li>✓ Transformación creativa (Anime, Acuarela, 3D…)</li>
+              <li>✓ Resultado visual único y personalizado</li>
             </ul>
 
             <button

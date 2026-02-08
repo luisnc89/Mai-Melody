@@ -45,7 +45,51 @@ const AdminBlogEditor: React.FC<Props> = ({
 
   const [lang, setLang] = useState<Language>('es')
   const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
 
+  /* =====================
+     IMAGE UPLOAD
+  ===================== */
+  const uploadImage = async (file: File) => {
+    setUploading(true)
+
+    const ext = file.name.split('.').pop()
+    const fileName = `blog/${crypto.randomUUID()}.${ext}`
+
+    const { error } = await supabase.storage
+      .from('blog')
+      .upload(fileName, file)
+
+    if (error) {
+      setUploading(false)
+      throw error
+    }
+
+    const { data } = supabase.storage
+      .from('blog')
+      .getPublicUrl(fileName)
+
+    setUploading(false)
+    return data.publicUrl
+  }
+
+  const handleImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const imageUrl = await uploadImage(file)
+      setPost(p => ({ ...p, image: imageUrl }))
+    } catch (err: any) {
+      setError(err.message || 'Error subiendo imagen')
+    }
+  }
+
+  /* =====================
+     EDITOR HELPERS
+  ===================== */
   const insertHTML = (html: string) => {
     editorRef.current?.focus()
     document.execCommand('insertHTML', false, html)
@@ -102,6 +146,32 @@ const AdminBlogEditor: React.FC<Props> = ({
         ))}
       </div>
 
+      {/* IMAGE */}
+      <div className="space-y-2">
+        <label className="font-semibold text-sm">
+          Imagen del post
+        </label>
+
+        {post.image && (
+          <img
+            src={post.image}
+            className="w-full max-h-64 object-cover rounded-xl border"
+          />
+        )}
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+        />
+
+        {uploading && (
+          <p className="text-xs italic text-gray-500">
+            Subiendo imagen…
+          </p>
+        )}
+      </div>
+
       {/* SLUG */}
       <input
         value={post.slugs[lang]}
@@ -128,7 +198,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         placeholder="Título"
       />
 
-      {/* TOOLBAR REAL */}
+      {/* TOOLBAR */}
       <div className="flex gap-2 border rounded-xl p-2 bg-gray-50 text-sm">
         <button onClick={() => document.execCommand('bold')}>B</button>
         <button onClick={() => insertHTML('<h2>Título</h2>')}>H2</button>

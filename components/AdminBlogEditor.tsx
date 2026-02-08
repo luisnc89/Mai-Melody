@@ -51,6 +51,9 @@ const AdminBlogEditor: React.FC<Props> = ({
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState(false)
 
+  /* =====================
+     IMAGE UPLOAD
+  ===================== */
   const uploadImage = async (file: File) => {
     setUploading(true)
 
@@ -88,6 +91,9 @@ const AdminBlogEditor: React.FC<Props> = ({
     }
   }
 
+  /* =====================
+     SAVE
+  ===================== */
   const handleSave = () => {
     if (!post.title[lang] || !post.slugs[lang]) {
       setError('Título y URL son obligatorios')
@@ -109,6 +115,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         </div>
       )}
 
+      {/* IDIOMAS */}
       <div className="flex gap-2">
         {LANGUAGES.map(l => (
           <button
@@ -125,6 +132,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         ))}
       </div>
 
+      {/* IMAGE */}
       <div className="space-y-2">
         <label className="font-semibold text-sm">
           Imagen del post
@@ -137,7 +145,11 @@ const AdminBlogEditor: React.FC<Props> = ({
           />
         )}
 
-        <input type="file" accept="image/*" onChange={handleImageChange} />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+        />
 
         {uploading && (
           <p className="text-xs italic text-gray-500">
@@ -146,6 +158,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         )}
       </div>
 
+      {/* SLUG */}
       <input
         value={post.slugs[lang]}
         onChange={e =>
@@ -161,6 +174,7 @@ const AdminBlogEditor: React.FC<Props> = ({
         placeholder="URL"
       />
 
+      {/* TITULO */}
       <input
         value={post.title[lang]}
         onChange={e =>
@@ -176,8 +190,9 @@ const AdminBlogEditor: React.FC<Props> = ({
         placeholder="Título"
       />
 
+      {/* RICH TEXT EDITOR */}
       <RichTextEditor
-        value={post.content[lang]}
+        value={post.content[lang] || ''}
         onChange={html =>
           setPost(p => ({
             ...p,
@@ -189,20 +204,72 @@ const AdminBlogEditor: React.FC<Props> = ({
         }
       />
 
+      {/* PREVIEW TOGGLE */}
       <button
         onClick={() => setPreview(p => !p)}
         className="text-sm underline"
       >
-        {preview ? 'Ocultar preview' : 'Ver preview'}
+        {preview ? 'Ocultar vista previa' : 'Ver vista previa'}
       </button>
 
+      {/* PREVIEW */}
       {preview && (
-        <div
-          className="prose max-w-none border rounded-xl p-4"
-          dangerouslySetInnerHTML={{ __html: post.content[lang] }}
-        />
+        <div className="border rounded-2xl p-6 space-y-6 bg-gray-50">
+          {/* Título */}
+          <h1 className="text-3xl font-serif">
+            {post.title[lang] || post.title.es}
+          </h1>
+
+          {/* Imagen destacada */}
+          {post.image && (
+            <img
+              src={post.image}
+              alt={post.title[lang]}
+              className="w-full max-h-96 object-cover rounded-xl"
+            />
+          )}
+
+          {/* Contenido */}
+          <div
+            className="
+              text-base leading-relaxed text-gray-800
+
+              [&_p]:my-5
+
+              [&_h2]:text-3xl
+              [&_h2]:font-serif
+              [&_h2]:font-bold
+              [&_h2]:mt-12
+              [&_h2]:mb-4
+
+              [&_h3]:text-2xl
+              [&_h3]:font-serif
+              [&_h3]:font-semibold
+              [&_h3]:mt-8
+              [&_h3]:mb-3
+
+              [&_ul]:list-disc
+              [&_ul]:pl-6
+              [&_ul]:my-5
+
+              [&_ol]:list-decimal
+              [&_ol]:pl-6
+              [&_ol]:my-5
+
+              [&_li]:my-1
+
+              [&_a]:text-violet-600
+              [&_a]:font-semibold
+              hover:[&_a]:underline
+            "
+            dangerouslySetInnerHTML={{
+              __html: post.content[lang] || '',
+            }}
+          />
+        </div>
       )}
 
+      {/* ACTIONS */}
       <div className="flex gap-4">
         <button
           onClick={handleSave}

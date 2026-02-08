@@ -2,9 +2,8 @@ import { useEffect, useRef } from 'react'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
-import Image from '@tiptap/extension-image'
-import Link from '@tiptap/extension-link'
 import Underline from '@tiptap/extension-underline'
+import Link from '@tiptap/extension-link'
 
 interface Props {
   value: string
@@ -12,7 +11,11 @@ interface Props {
 }
 
 const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
-  const lastValue = useRef<string | null>(null)
+  /**
+   * Guarda el último HTML emitido por TipTap
+   * para evitar bucles infinitos
+   */
+  const lastHtml = useRef<string>('')
 
   const editor = useEditor({
     extensions: [
@@ -20,7 +23,6 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
         heading: { levels: [2, 3] },
       }),
       Underline,
-      Image,
       Link.configure({
         openOnClick: false,
         autolink: true,
@@ -29,100 +31,125 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
         placeholder: 'Escribe aquí el contenido del post…',
       }),
     ],
-    content: value,
+    content: value || '',
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
-      lastValue.current = html
+      lastHtml.current = html
       onChange(html)
     },
   })
 
   /**
-   * ✅ SINCRONIZACIÓN CORRECTA
-   * Solo cuando cambia el valor externo de verdad
+   * 🔁 Sincronización REAL
+   * Solo se actualiza el editor si el HTML externo
+   * es distinto al último que emitió TipTap
    */
   useEffect(() => {
     if (!editor) return
 
-    if (value !== lastValue.current) {
+    if (value !== lastHtml.current) {
       editor.commands.setContent(value || '')
-      lastValue.current = value
+      lastHtml.current = value
     }
   }, [value, editor])
 
   if (!editor) return null
 
-  /* =====================
-     PEGAR HTML EXPLÍCITO
-  ===================== */
-  const pasteHTML = () => {
-    const html = window.prompt('Pega aquí el HTML del artículo')
-    if (!html) return
-
-    editor.chain().focus().setContent(html).run()
-  }
-
-  const btn = 'px-2 py-1 rounded text-sm border transition'
-  const active = 'bg-gray-900 text-white border-gray-900'
+  const btn =
+    'px-2 py-1 rounded text-sm border transition select-none'
+  const active =
+    'bg-gray-900 text-white border-gray-900'
   const inactive =
     'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
 
   return (
-    <div className="border rounded-xl overflow-hidden">
+    <div className="border rounded-xl overflow-hidden bg-white">
       {/* TOOLBAR */}
       <div className="flex flex-wrap gap-1 border-b bg-gray-50 p-2">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`${btn} ${editor.isActive('bold') ? active : inactive} font-bold`}
+          className={`${btn} ${
+            editor.isActive('bold') ? active : inactive
+          } font-bold`}
         >
           B
         </button>
 
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`${btn} ${editor.isActive('italic') ? active : inactive} italic`}
+          className={`${btn} ${
+            editor.isActive('italic') ? active : inactive
+          } italic`}
         >
           I
         </button>
 
         <button
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`${btn} ${editor.isActive('underline') ? active : inactive} underline`}
+          onClick={() =>
+            editor.chain().focus().toggleUnderline().run()
+          }
+          className={`${btn} ${
+            editor.isActive('underline') ? active : inactive
+          } underline`}
         >
           U
         </button>
 
         <button
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          onClick={() =>
+            editor
+              .chain()
+              .focus()
+              .toggleHeading({ level: 2 })
+              .run()
+          }
           className={`${btn} ${
-            editor.isActive('heading', { level: 2 }) ? active : inactive
+            editor.isActive('heading', { level: 2 })
+              ? active
+              : inactive
           }`}
         >
           H2
         </button>
 
         <button
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          onClick={() =>
+            editor
+              .chain()
+              .focus()
+              .toggleHeading({ level: 3 })
+              .run()
+          }
           className={`${btn} ${
-            editor.isActive('heading', { level: 3 }) ? active : inactive
+            editor.isActive('heading', { level: 3 })
+              ? active
+              : inactive
           }`}
         >
           H3
         </button>
 
         <button
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          onClick={() =>
+            editor.chain().focus().toggleBulletList().run()
+          }
           className={`${btn} ${
-            editor.isActive('bulletList') ? active : inactive
+            editor.isActive('bulletList')
+              ? active
+              : inactive
           }`}
         >
           • Lista
         </button>
 
         <button
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          onClick={() =>
+            editor.chain().focus().toggleOrderedList().run()
+          }
           className={`${btn} ${
-            editor.isActive('orderedList') ? active : inactive
+            editor.isActive('orderedList')
+              ? active
+              : inactive
           }`}
         >
           1. Lista
@@ -151,21 +178,13 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
         >
           ↷
         </button>
-
-        {/* 🔥 BOTÓN HTML (NO SE BORRA) */}
-        <button
-          onClick={pasteHTML}
-          className={`${btn} bg-violet-600 text-white border-violet-600`}
-        >
-          ⬇ Pegar HTML
-        </button>
       </div>
 
       {/* EDITOR */}
       <EditorContent
         editor={editor}
         className="
-          p-4 min-h-[260px] focus:outline-none
+          p-4 min-h-[280px] focus:outline-none
 
           [&_p]:my-4
 
@@ -187,8 +206,9 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
           [&_ol]:pl-6
           [&_ol]:my-4
 
-          [&_a]:text-blue-600
-          [&_a]:underline
+          [&_a]:text-violet-600
+          [&_a]:font-semibold
+          hover:[&_a]:underline
         "
       />
     </div>

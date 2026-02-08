@@ -17,11 +17,19 @@ export const config = {
 
 /* =========================
    🔐 Supabase (SERVICE ROLE)
-   👉 PON LA KEY EN VERCEL
+   👉 LAS KEYS VAN SOLO EN VERCEL
 ========================= */
+if (!process.env.SUPABASE_URL) {
+  throw new Error('Missing SUPABASE_URL');
+}
+
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+}
+
 const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://szqhqqknusagdzavogwb.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_secret_x9FGGWQ58NBt0CrsXxf-pQ_sOryM7aG' // 👈 AQUÍ VA TU KEY EN VERCEL
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 /* =========================
@@ -133,7 +141,7 @@ export default async function handler(
       const filePath = `${orderId}/${crypto.randomUUID()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('order_photos') // 👈 bucket
+        .from('order_photos')
         .upload(filePath, buffer, {
           contentType: file.mimetype || undefined,
         });

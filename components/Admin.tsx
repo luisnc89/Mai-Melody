@@ -2,9 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../services/supabase';
 import { Language } from '../types';
 import AdminBlog from './AdminBlog';
-import { getOrders } from '../services/storage';
 
 type Tab = 'orders' | 'testimonials' | 'blog';
+
+interface Order {
+  id: string;
+  email: string;
+  pack: string;
+  price: number;
+  title: string;
+  from_name: string;
+  to_name: string;
+  story: string;
+  musical_style: string;
+  voice: string;
+  occasion: string;
+  status: 'pendiente' | 'procesado' | 'completado';
+  created_at: string;
+}
 
 interface Testimonial {
   id: string;
@@ -36,6 +51,9 @@ interface AdminProps {
 const Admin: React.FC<AdminProps> = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState<Tab>('orders');
 
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +73,22 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
   });
 
   /* =====================
+     LOAD ORDERS (FASE 1)
+  ===================== */
+  const loadOrders = async () => {
+    setOrdersLoading(true);
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error) {
+      setOrders(data || []);
+    }
+    setOrdersLoading(false);
+  };
+
+  /* =====================
      LOAD TESTIMONIALS
   ===================== */
   const loadTestimonials = async () => {
@@ -68,6 +102,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
 
   useEffect(() => {
     loadTestimonials();
+    loadOrders();
   }, []);
 
   /* =====================
@@ -203,17 +238,63 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
           ))}
         </div>
 
+        {/* ORDERS — FASE 1 */}
+        {activeTab === 'orders' && (
+          <div className="bg-white rounded-3xl shadow p-6 overflow-x-auto">
+            {ordersLoading ? (
+              <p className="italic">Cargando pedidos…</p>
+            ) : orders.length === 0 ? (
+              <p className="italic">No hay pedidos.</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left border-b">
+                    <th className="py-2">Fecha</th>
+                    <th>Email</th>
+                    <th>Pack</th>
+                    <th>Precio</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map(order => (
+                    <tr key={order.id} className="border-b last:border-0">
+                      <td className="py-2">
+                        {new Date(order.created_at).toLocaleString()}
+                      </td>
+                      <td>{order.email}</td>
+                      <td>{order.pack}</td>
+                      <td>{order.price} €</td>
+                      <td>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-bold ${
+                            order.status === 'pendiente'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : order.status === 'procesado'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}
+                        >
+                          {order.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
         {/* TESTIMONIOS */}
         {activeTab === 'testimonials' && (
           <div className="space-y-8">
-
             {error && (
               <div className="bg-red-100 text-red-700 p-4 rounded-xl">
                 {error}
               </div>
             )}
 
-            {/* FORM */}
             <div className="bg-white p-8 rounded-3xl shadow space-y-6">
               <h2 className="text-2xl font-serif">Añadir testimonio</h2>
 
@@ -231,95 +312,6 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
                 onChange={e => setForm({ ...form, message: e.target.value })}
               />
 
-              <div className="flex flex-wrap gap-4 items-center">
-                <select
-                  value={form.rating}
-                  onChange={e =>
-                    setForm({ ...form, rating: Number(e.target.value) })
-                  }
-                  className="border rounded-xl px-3 py-2"
-                >
-                  {[5, 4, 3, 2, 1].map(r => (
-                    <option key={r} value={r}>{r} ⭐</option>
-                  ))}
-                </select>
-
-                <select
-                  value={form.language}
-                  onChange={e =>
-                    setForm({ ...form, language: e.target.value as Language })
-                  }
-                  className="border rounded-xl px-3 py-2"
-                >
-                  {LANGUAGES.map(l => (
-                    <option key={l} value={l}>{l.toUpperCase()}</option>
-                  ))}
-                </select>
-
-                <select
-                  value={form.pack}
-                  onChange={e =>
-                    setForm({ ...form, pack: e.target.value })
-                  }
-                  className="border rounded-xl px-3 py-2"
-                >
-                  <option value="">Pack</option>
-                  {PACKS.map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={form.visible}
-                    onChange={e =>
-                      setForm({ ...form, visible: e.target.checked })
-                    }
-                  />
-                  Visible
-                </label>
-              </div>
-
-              {/* IMAGE */}
-              <div>
-                <label className="font-semibold text-sm">Foto de perfil</label>
-                {imagePreview && (
-                  <img
-                    src={imagePreview}
-                    className="w-16 h-16 rounded-full object-cover mt-2"
-                  />
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={e => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setForm({ ...form, photoFile: file });
-                    setImagePreview(URL.createObjectURL(file));
-                  }}
-                />
-              </div>
-
-              {/* AUDIO */}
-              <div>
-                <label className="font-semibold text-sm">Canción</label>
-                {audioName && (
-                  <p className="text-xs text-gray-500">🎵 {audioName}</p>
-                )}
-                <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={e => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setForm({ ...form, songFile: file });
-                    setAudioName(file.name);
-                  }}
-                />
-              </div>
-
               <button
                 onClick={handleSaveTestimonial}
                 disabled={loading}
@@ -332,7 +324,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
         )}
 
         {activeTab === 'blog' && <AdminBlog />}
-        {activeTab === 'orders' && <p className="italic">Pedidos sin cambios.</p>}
+
       </div>
     </section>
   );

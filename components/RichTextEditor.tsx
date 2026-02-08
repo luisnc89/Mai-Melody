@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -12,6 +12,8 @@ interface Props {
 }
 
 const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
+  const lastValue = useRef<string | null>(null)
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -29,28 +31,26 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
     ],
     content: value,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      const html = editor.getHTML()
+      lastValue.current = html
+      onChange(html)
     },
   })
 
+  /**
+   * 🔥 SINCRONIZACIÓN CORRECTA
+   * SOLO cuando cambia el valor externo REALMENTE
+   */
   useEffect(() => {
     if (!editor) return
-    if (editor.getHTML() !== value) {
-      editor.commands.setContent(value || '', { emitUpdate: false })
+
+    if (value !== lastValue.current) {
+      editor.commands.setContent(value || '')
+      lastValue.current = value
     }
   }, [value, editor])
 
   if (!editor) return null
-
-  /* =====================
-     PEGAR HTML EXPLÍCITO
-  ===================== */
-  const pasteHTML = () => {
-    const html = window.prompt('Pega aquí el HTML del artículo')
-    if (!html) return
-
-    editor.chain().focus().setContent(html).run()
-  }
 
   const btn = 'px-2 py-1 rounded text-sm border transition'
   const active = 'bg-gray-900 text-white border-gray-900'
@@ -94,24 +94,6 @@ const RichTextEditor: React.FC<Props> = ({ value, onChange }) => {
         <button onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className={`${btn} ${editor.isActive('orderedList') ? active : inactive}`}>
           1. Lista
-        </button>
-
-        <button onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
-          className={`${btn} ${editor.can().undo() ? inactive : 'opacity-40 cursor-not-allowed'}`}>
-          ↶
-        </button>
-
-        <button onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
-          className={`${btn} ${editor.can().redo() ? inactive : 'opacity-40 cursor-not-allowed'}`}>
-          ↷
-        </button>
-
-        {/* 🔥 BOTÓN CLAVE */}
-        <button onClick={pasteHTML}
-          className={`${btn} bg-violet-600 text-white border-violet-600`}>
-          ⬇ Pegar HTML
         </button>
       </div>
 

@@ -47,19 +47,16 @@ const PACKS = [
   'Memorial',
 ];
 
-interface AdminProps {
-  onLogout: () => void;
-}
-
 /* =====================
    COMPONENT
 ===================== */
-const Admin: React.FC<AdminProps> = ({ onLogout }) => {
+const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('orders');
 
   /* ORDERS */
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   /* TESTIMONIALS */
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -93,6 +90,28 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
     setOrders(data || []);
     setOrdersLoading(false);
   };
+  /* =====================
+   LOAD ORDER PHOTOS
+===================== */
+const [orderPhotos, setOrderPhotos] = useState<any[]>([]);
+const [photosLoading, setPhotosLoading] = useState(false);
+
+const loadOrderPhotos = async (orderId: string) => {
+  setPhotosLoading(true);
+
+  const { data, error } = await supabase
+    .from('order_photos')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: true });
+
+  if (!error) {
+    setOrderPhotos(data || []);
+  }
+
+  setPhotosLoading(false);
+};
+
 
   /* =====================
      LOAD TESTIMONIALS
@@ -106,10 +125,18 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
     setTestimonials(data || []);
   };
 
+
   useEffect(() => {
     loadOrders();
-    loadTestimonials();
-  }, []);
+     loadTestimonials();
+}, []);
+
+useEffect(() => {
+  if (selectedOrder) {
+    loadOrderPhotos(selectedOrder.id);
+  }
+}, [selectedOrder]);
+
 
   /* =====================
      UPLOAD IMAGE
@@ -214,12 +241,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
         {/* HEADER */}
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-serif">Admin MaiMelody</h1>
-          <button
-            onClick={onLogout}
-            className="bg-gray-900 text-white px-6 py-3 rounded-full"
-          >
-            Salir
-          </button>
+      
         </div>
 
         {/* TABS */}
@@ -265,7 +287,11 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
                 </thead>
                 <tbody>
                   {orders.map(o => (
-                    <tr key={o.id} className="border-b last:border-0">
+  <tr
+    key={o.id}
+    onClick={() => setSelectedOrder(o)}
+    className="border-b last:border-0 cursor-pointer hover:bg-gray-50"
+  >
                       <td>{new Date(o.created_at).toLocaleString()}</td>
                       <td>{o.email}</td>
                       <td>{o.title}</td>
@@ -273,23 +299,79 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
                       <td>{o.pack}</td>
                       <td>{o.price} €</td>
                       <td>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          o.status === 'pendiente'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : o.status === 'procesado'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {o.status}
-                        </span>
-                      </td>
+  <select
+    value={o.status}
+    onClick={e => e.stopPropagation()}
+    onChange={async e => {
+      const newStatus = e.target.value as Order['status'];
+
+      await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', o.id);
+
+      loadOrders();
+    }}
+    className="border rounded-lg px-2 py-1 text-xs font-semibold"
+  >
+    <option value="pendiente">Pendiente</option>
+    <option value="procesado">Procesado</option>
+    <option value="completado">Completado</option>
+  </select>
+</td>
+
                     </tr>
                   ))}
                 </tbody>
               </table>
-            )}
-          </div>
-        )}
+)}
+
+{/* =====================
+   DETALLE DEL PEDIDO
+===================== */}
+{selectedOrder && (
+  <div className="mt-8 bg-gray-50 border rounded-2xl p-6 space-y-4">
+    <h3 className="text-lg font-bold">
+      Pedido seleccionado
+    </h3>
+
+    <p><strong>Email:</strong> {selectedOrder.email}</p>
+    <p><strong>Para:</strong> {selectedOrder.to_name}</p>
+    <p><strong>Título:</strong> {selectedOrder.title}</p>
+    <p><strong>Ocasión:</strong> {selectedOrder.occasion}</p>
+    <p><strong>Estilo musical:</strong> {selectedOrder.musical_style}</p>
+    <p><strong>Voz:</strong> {selectedOrder.voice}</p>
+
+    <div>
+      <p className="font-semibold mb-1">Historia del cliente:</p>
+      <p className="bg-white p-4 rounded-xl border text-sm whitespace-pre-line">
+        {selectedOrder.story}
+      </p>
+    </div>
+
+    <div>
+      <p className="font-semibold mb-2">Imágenes del pedido</p>
+
+      {photosLoading ? (
+        <p className="italic">Cargando imágenes…</p>
+      ) : orderPhotos.length === 0 ? (
+        <p className="italic text-sm">Este pedido no tiene imágenes.</p>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {orderPhotos.map(photo => (
+            <img
+              key={photo.id}
+              src={photo.file_path}
+              className="rounded-xl object-cover border"
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+</div>
+)}
 
         {/* TESTIMONIALS */}
         {activeTab === 'testimonials' && (

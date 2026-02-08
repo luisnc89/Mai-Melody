@@ -5,6 +5,9 @@ import AdminBlog from './AdminBlog';
 
 type Tab = 'orders' | 'testimonials' | 'blog';
 
+/* =====================
+   TYPES
+===================== */
 interface Order {
   id: string;
   email: string;
@@ -48,12 +51,17 @@ interface AdminProps {
   onLogout: () => void;
 }
 
+/* =====================
+   COMPONENT
+===================== */
 const Admin: React.FC<AdminProps> = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState<Tab>('orders');
 
+  /* ORDERS */
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
+  /* TESTIMONIALS */
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,18 +81,16 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
   });
 
   /* =====================
-     LOAD ORDERS (FASE 1)
+     LOAD ORDERS
   ===================== */
   const loadOrders = async () => {
     setOrdersLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!error) {
-      setOrders(data || []);
-    }
+    setOrders(data || []);
     setOrdersLoading(false);
   };
 
@@ -101,8 +107,8 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
   };
 
   useEffect(() => {
-    loadTestimonials();
     loadOrders();
+    loadTestimonials();
   }, []);
 
   /* =====================
@@ -190,7 +196,6 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
 
       setImagePreview(null);
       setAudioName(null);
-
       loadTestimonials();
     } catch (err: any) {
       setError(err.message || 'Error guardando testimonio');
@@ -238,7 +243,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
           ))}
         </div>
 
-        {/* ORDERS — FASE 1 */}
+        {/* ORDERS */}
         {activeTab === 'orders' && (
           <div className="bg-white rounded-3xl shadow p-6 overflow-x-auto">
             {ordersLoading ? (
@@ -248,7 +253,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left border-b">
+                  <tr className="border-b">
                     <th className="py-2">Fecha</th>
                     <th>Email</th>
                     <th>Pack</th>
@@ -259,25 +264,11 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
                 <tbody>
                   {orders.map(order => (
                     <tr key={order.id} className="border-b last:border-0">
-                      <td className="py-2">
-                        {new Date(order.created_at).toLocaleString()}
-                      </td>
+                      <td>{new Date(order.created_at).toLocaleString()}</td>
                       <td>{order.email}</td>
                       <td>{order.pack}</td>
                       <td>{order.price} €</td>
-                      <td>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-bold ${
-                            order.status === 'pendiente'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : order.status === 'procesado'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </td>
+                      <td>{order.status}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -286,7 +277,7 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
           </div>
         )}
 
-        {/* TESTIMONIOS */}
+        {/* TESTIMONIALS */}
         {activeTab === 'testimonials' && (
           <div className="space-y-8">
             {error && (
@@ -310,6 +301,17 @@ const Admin: React.FC<AdminProps> = ({ onLogout }) => {
                 placeholder="Mensaje"
                 value={form.message}
                 onChange={e => setForm({ ...form, message: e.target.value })}
+              />
+
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setForm({ ...form, songFile: file });
+                  setAudioName(file.name);
+                }}
               />
 
               <button

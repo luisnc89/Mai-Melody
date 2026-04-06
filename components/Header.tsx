@@ -72,7 +72,7 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
       }
     }
 
-    // 🌐 RESTO DE LA WEB (lo que ya tenías)
+    // 🌐 RESTO DE LA WEB
     segments[0] = newLang
 
     if (segments[1] === ROUTE_SLUGS.create[language] && segments[2]) {
@@ -81,6 +81,33 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
         segments[1] = ROUTE_SLUGS.create[newLang]
         segments[2] = getPackSlug(pack, newLang)
       }
+    }
+
+    if (segments[1] === ROUTE_SLUGS.packs[language]) {
+      segments[1] = ROUTE_SLUGS.packs[newLang]
+    }
+
+    if (segments[1] === ROUTE_SLUGS.how[language]) {
+      segments[1] = ROUTE_SLUGS.how[newLang]
+    }
+
+    if (segments[1] === ROUTE_SLUGS.about[language]) {
+      segments[1] = ROUTE_SLUGS.about[newLang]
+    }
+
+    if (segments[1] === ROUTE_SLUGS.admin[language]) {
+      segments[1] = ROUTE_SLUGS.admin[newLang]
+    }
+
+    if (segments[1] === 'gracias' || segments[1] === 'thanks' || segments[1] === 'gracies' || segments[1] === 'merci' || segments[1] === 'grazie') {
+      const thankYouSlugByLang: Record<Language, string> = {
+        es: 'gracias',
+        en: 'thanks',
+        ca: 'gracies',
+        fr: 'merci',
+        it: 'grazie',
+      }
+      segments[1] = thankYouSlugByLang[newLang]
     }
 
     setMobileOpen(false)
@@ -114,6 +141,14 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
       </Link>
 
       <Link
+        to={withLang(ROUTE_SLUGS.about[language])}
+        onClick={() => setMobileOpen(false)}
+        className={isActive(ROUTE_SLUGS.about[language]) ? 'text-violet-600' : ''}
+      >
+        {t.nav_about}
+      </Link>
+
+      <Link
         to={withLang(ROUTE_SLUGS.blog[language])}
         onClick={() => setMobileOpen(false)}
         className={isActive(ROUTE_SLUGS.blog[language]) ? 'text-violet-600' : ''}
@@ -136,7 +171,6 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
   return (
     <header className="fixed top-0 w-full z-50 bg-warm-white/80 backdrop-blur-md shadow-sm border-b border-violet-100/50">
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-
         <Link to={`/${language}`} className="flex items-center gap-3">
           <span className="text-3xl">🦋</span>
           <div>

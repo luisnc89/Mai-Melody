@@ -1,4 +1,4 @@
-import { Language, PackType } from '../types';
+import { Language, PackType } from '../types'
 
 /*
   =====================================================
@@ -15,6 +15,14 @@ export const ROUTE_SLUGS = {
     ca: '',
     fr: '',
     it: '',
+  },
+
+  about: {
+    es: 'sobre-nosotros',
+    en: 'about-us',
+    ca: 'sobre-nosaltres',
+    fr: 'a-propos',
+    it: 'chi-siamo',
   },
 
   packs: {
@@ -56,7 +64,7 @@ export const ROUTE_SLUGS = {
     fr: 'admin',
     it: 'admin',
   },
-} satisfies Record<string, Record<Language, string>>;
+} satisfies Record<string, Record<Language, string>>
 
 /*
   =====================================================
@@ -93,4 +101,4 @@ export const PACK_SLUGS: Record<
     fr: 'artistique',
     it: 'artistico',
   },
-};
+}

@@ -18,6 +18,7 @@ import Login from './components/Login'
 import Admin from './components/Admin'
 import AdminRoute from './components/AdminRoute'
 import ThanksPage from './components/ThanksPage'
+import AboutUs from './components/AboutUs'
 
 import { Language } from './types'
 import { ROUTE_SLUGS } from './routes/slugs'
@@ -89,6 +90,12 @@ const LanguageLayout: React.FC = () => {
                 <SEOBlock />
               </>
             }
+          />
+
+          {/* ================= SOBRE NOSOTROS ================= */}
+          <Route
+            path={ROUTE_SLUGS.about[language]}
+            element={<AboutUs />}
           />
 
           {/* ================= PACKS ================= */}

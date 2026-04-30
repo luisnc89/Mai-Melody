@@ -36,13 +36,15 @@ const MUSIC_STYLES = [
 ========================= */
 const formatTime = (t: number) => {
   if (!t || isNaN(t)) return '0:00';
+
   const m = Math.floor(t / 60);
   const s = Math.floor(t % 60);
+
   return `${m}:${String(s).padStart(2, '0')}`;
 };
 
 /* =========================
-   🎧 Player (FIXED)
+   🎧 Player
 ========================= */
 const CardPlayer = ({
   audio,
@@ -61,7 +63,9 @@ const CardPlayer = ({
   useEffect(() => {
     if (!audio) return;
 
-    const onTime = () => setCurrent(audio.currentTime);
+    const onTime = () => {
+      setCurrent(audio.currentTime);
+    };
 
     const onDuration = () => {
       if (!isNaN(audio.duration)) {
@@ -69,12 +73,16 @@ const CardPlayer = ({
       }
     };
 
+    const onEnded = () => {
+      setCurrent(0);
+    };
+
     audio.addEventListener('timeupdate', onTime);
     audio.addEventListener('loadedmetadata', onDuration);
     audio.addEventListener('durationchange', onDuration);
     audio.addEventListener('play', onDuration);
+    audio.addEventListener('ended', onEnded);
 
-    // Fallback inmediato
     if (audio.readyState >= 1 && !isNaN(audio.duration)) {
       setDuration(audio.duration);
     }
@@ -84,6 +92,7 @@ const CardPlayer = ({
       audio.removeEventListener('loadedmetadata', onDuration);
       audio.removeEventListener('durationchange', onDuration);
       audio.removeEventListener('play', onDuration);
+      audio.removeEventListener('ended', onEnded);
     };
   }, [audio]);
 
@@ -94,6 +103,7 @@ const CardPlayer = ({
           onClick={onToggle}
           className="w-10 h-10 rounded-full bg-white flex items-center justify-center transition-all"
           style={{ boxShadow: isActive ? `0 0 16px ${color}` : undefined }}
+          type="button"
         >
           {isActive ? '❚❚' : '▶'}
         </button>
@@ -110,6 +120,7 @@ const CardPlayer = ({
           value={current}
           onChange={e => {
             if (!audio) return;
+
             const v = Number(e.target.value);
             audio.currentTime = v;
             setCurrent(v);
@@ -143,21 +154,40 @@ const MusicStyles: React.FC = () => {
   const audioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
 
   const toggle = async (id: string) => {
-    Object.values(audioRefs.current).forEach(audio => {
-      if (audio instanceof HTMLAudioElement) {
-        audio.pause();
-      }
-    });
-
     const current = audioRefs.current[id];
+
     if (!current) return;
 
     if (active === id) {
       current.pause();
       setActive(null);
-    } else {
+      return;
+    }
+
+    Object.entries(audioRefs.current).forEach(([audioId, audio]) => {
+      if (audioId !== id && audio instanceof HTMLAudioElement) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    });
+
+    const hasLoadedSrc = current.getAttribute('src');
+
+    if (!hasLoadedSrc) {
+      const audioSrc = current.dataset.src;
+
+      if (!audioSrc) return;
+
+      current.src = audioSrc;
+      current.load();
+    }
+
+    try {
       await current.play();
       setActive(id);
+    } catch (error) {
+      console.error('No se pudo reproducir el audio:', error);
+      setActive(null);
     }
   };
 
@@ -167,24 +197,27 @@ const MusicStyles: React.FC = () => {
     );
   };
 
+  const heroCta = t.hero_cta as string;
+
   return (
     <section className="relative py-24 px-4 bg-[#0B0E17]">
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
         {MUSIC_STYLES.map(style => {
           const src = `/assets/audio/${style.id}-${LANGUAGE_FILE[language]}.mp3`;
+          const styleLabel = t[style.key as keyof typeof t] as string;
 
           return (
             <div key={style.id} className="relative rounded-[36px] overflow-hidden">
               <img
                 src={`/assets/styles/${style.image}`}
-                alt={t[style.key as keyof typeof t]}
+                alt={styleLabel}
                 className="w-full h-[360px] object-cover"
               />
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
               <div className="absolute top-4 left-4 bg-black/60 px-4 py-1 rounded-full text-xs text-white">
-                {t[style.key as keyof typeof t]}
+                {styleLabel}
               </div>
 
               <CardPlayer
@@ -195,9 +228,12 @@ const MusicStyles: React.FC = () => {
               />
 
               <audio
-                ref={el => (audioRefs.current[style.id] = el)}
-                src={src}
-                preload="metadata"
+                ref={(el) => {
+                  audioRefs.current[style.id] = el;
+                }}
+                data-src={src}
+                preload="none"
+                onEnded={() => setActive(null)}
               />
             </div>
           );
@@ -208,8 +244,9 @@ const MusicStyles: React.FC = () => {
         <button
           onClick={goToBasicPack}
           className="bg-pink-600 text-white px-10 py-5 rounded-full text-lg font-semibold hover:scale-105 transition"
+          type="button"
         >
-          {t.hero_cta}
+          {heroCta}
         </button>
       </div>
     </section>
